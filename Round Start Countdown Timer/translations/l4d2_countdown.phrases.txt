@@ -1,0 +1,18 @@
+"Phrases"
+{
+	"Round is live!"
+	{
+		"en"		"Round is live!"
+        "ru"		"Раунд начался!"
+	}
+	"Live in: %d"
+	{
+		"en"		"Live in: %d"
+        "ru"		"Раунд начнется через: %d"
+	}
+	"%N, do not leave the saferoom until the beginning of the round."
+	{
+		"en"		"%N, do not leave the saferoom until the beginning of the round."
+        "ru"		"%N, не выходи из убежища до начала раунда."
+	}
+}
