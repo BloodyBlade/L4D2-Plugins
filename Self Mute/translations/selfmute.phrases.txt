@@ -1,0 +1,53 @@
+"Phrases"
+{
+	"[Self-Mute] You have self-muted: %N"
+	{
+		"en"	"{green}[{red}Self-Mute{green}] {red}You {green}have {red}self-muted{green}: {red}%N"
+		"ru"	"{green}[{red}Заглушение{green}] {red}Вы {green}заглушили {red}игрока{green}: {red}%N"
+	}
+	"[Self-Mute] You have self-unmuted: %N"
+	{
+		"en"	"{green}[{red}Self-Mute{green}] {red}You {green}have {red}self-unmuted{green}: {red}%N"
+		"ru"	"{green}[{red}Заглушение{green}] {red}Вы {green}амнистировали {red}игрока{green}: {red}%N"
+	}
+	"List of self-muted:"
+	{
+		"en"	"List of self-muted:"
+		"ru"	"Список заглушенных:"
+	}
+	"Mute_menu"
+	{
+		"en"	"Select category:"
+		"ru"	"Выберите пункт:"
+	}
+	"Mute_player"
+	{
+		"en"	"Mute_player"
+		"ru"	"Заглушить игрока"
+	}
+	"Unmute_player"
+	{
+		"en"	"Unmute player"
+		"ru"	"Амнистировать игрока"
+	}
+	"Check_mute_players"
+	{
+		"en"	"List of self-muted"
+		"ru"	"Список заглушенных"
+	}
+	"Choose a player to mute"
+	{
+		"en"	"Choose a player to mute:"
+		"ru"	"Выберите игрока:"
+	}
+	"Choose a player to unmute"
+	{
+		"en"	"Choose a player to unmute:"
+		"ru"	"Выберите игрока:"
+	}
+	"[Self-Mute] Player no longer available"
+	{
+		"en"	"{green}[{red}Self-Mute{green}] {red}Player no longer available"
+		"ru"	"{green}[{red}Заглушение{green}] {red}Игрок больше не доступен"
+	}
+}
