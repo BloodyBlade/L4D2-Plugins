@@ -1,0 +1,13 @@
+"Phrases"
+{
+	"Player %N has entered the safe zone. \nMode: Sudden death is activated after 10 seconds."
+	{
+		"en"	"{green}Player {red}%N {default}has {green}entered the {red}safe zone. \n{green}Mode{default}: {red}Sudden death {default}is {green}activated {default}after {red}10 {green}seconds."
+		"ru"	"{green}Игрок {red}%N {green}вошел в {red}зону спасения. \n{green}Режим{default}: {red}Внезапная смерть {green}активируется {default}через {red}10 {green}секунд."
+	}
+	"Mode: Sudden death is activated!"
+	{
+		"en"	"{green}Mode{default}: {red}Sudden death {default}is {green}activated!"
+		"ru"	"{green}Режим{default}: {red}Внезапная смерть {green}активирован!"
+	}
+}
