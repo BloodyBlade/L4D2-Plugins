@@ -1,0 +1,18 @@
+"Phrases"
+{
+	"You have protected yourself from a kick for high ping."
+	{
+		"en" "{red}You {green}have {red}protected {green}yourself {orange}from {green}a {orange}kick {green}for {red}high {green}ping."
+		"ru" "{green}Вы {red}защитили {green}себя {orange}от {red}кика {green}за {red}высокий {green}пинг."
+	}
+	"Your ping (%d) is too high. Max: %d"
+	{
+		"en" "Your ping (%d) is too high. Max: %d"
+		"ru" "Ваш пинг (%d) очень высок. Максимум: %d"
+	}
+	"Your ping is (%d). Max: %d"
+	{
+		"en" "{green}Your {red}ping {green}is ({red}%d{green}){default}. {red}Max{default}: {green}%d{default}."
+		"ru" "{green}Ваш {red}пинг {green}({red}%d{green}){default}. {red}Максимум{default}: {green}%d."
+	}
+}
