@@ -188,8 +188,8 @@ void DrugFunction(int client)
 		{
 			Shake(client, 20.0);
 		}
-		if(Adren[client]) CPrintToChatAll("%t", "Player %N let shit in their veins. Cure him or he will die!", client);
-		else if(Pills[client]) CPrintToChatAll("%t", "Player %N took the tablets with drugs. Cure him or he will die!", client);
+		if(Adren[client]) CPrintToChatAll("%t", "AdrenDrugs", client);
+		else if(Pills[client]) CPrintToChatAll("%t", "PillsDrugs", client);
 		if(iCvarDrugMode == 1 || iCvarDrugMode == 3)
 		{
 			if(!TimerDamage[client])
