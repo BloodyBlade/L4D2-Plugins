@@ -1,18 +1,20 @@
 "Phrases"
 {
-	"Round is live!"
+	"RoundIsLive"
 	{
 		"en"		"Round is live!"
         "ru"		"Раунд начался!"
 	}
-	"Live in: %d"
+	"LiveIn"
 	{
-		"en"		"Live in: %d"
-        "ru"		"Раунд начнется через: %d"
+		"#format"	"{1:d},{2:d},{3:d}"
+		"en"		"Connecting: {1}. Ready: {2}. \nLive in: {3} secs."
+        "ru"		"Подключаются: {1}. Готовы: {2}. \nДо начала раунда: {3} секунд(ы)."
 	}
-	"%N, do not leave the saferoom until the beginning of the round."
+	"LeftSafeRoom"
 	{
-		"en"		"%N, do not leave the saferoom until the beginning of the round."
-        "ru"		"%N, не выходи из убежища до начала раунда."
+		"#format"	"{1:N}"
+		"en"		"{1}, do not leave the saferoom until the beginning of the round."
+        "ru"		"{1}, не выходи из убежища до начала раунда."
 	}
 }
