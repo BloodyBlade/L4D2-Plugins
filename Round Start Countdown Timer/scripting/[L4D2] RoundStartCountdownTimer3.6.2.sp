@@ -4,13 +4,13 @@
 #include <left4dhooks>
 #include <vip_core>
 
-#define PLUGIN_VERSION "3.6.2"
+#define PLUGIN_VERSION "3.6.5"
 #define CVAR_FLAGS FCVAR_NOTIFY
 
 ConVar Countdown_on, Countdown_delay, Countdown_autoopen, Enable_sound, Freeze_players, Admin_Immune, Warp_survivor;
 ConVar GlowAllow, GlowRange, LockColor, OpenColor;
 bool bCountdown_on, bCountdown_autoopen, bEnable_sound, bFreeze_players, bAdmin_Immune, bWarp_survivor, bGlowAllow;
-int Delay = 0, CountDownTimer = 0, iCountdown_delay, iGlowRange, iLockColors[3], iUnlockColors[3];
+int Delay = 0, CountDownTimer = 0, iCountdown_delay, iGlowRange, iLockColors[3], iUnlockColors[3], movementOffset;
 bool TimerEnd = false, RoundTwo = false, LockTimerRepeate = true, bCvarAllow = false;
 char current_map[53], sLockColor[16], sUnlockColor[16];
 
@@ -39,6 +39,20 @@ public void OnPluginStart()
 	LockColor = CreateConVar("lock_glow_color",	"255 0 0", "Set Saferoom Lock Glow Color, (0-255) Separated By Spaces.", CVAR_FLAGS);
 	OpenColor = CreateConVar("unlock_glow_color", "0 255 0", "Set Saferoom Unlock Glow Color, (0-255) Separated By Spaces.", CVAR_FLAGS);
 
+	Countdown_on.AddChangeHook(ConVarChanged_Allow);
+	Countdown_delay.AddChangeHook(ConVarChanged_Cvars);
+	Countdown_autoopen.AddChangeHook(ConVarChanged_Cvars);
+	Enable_sound.AddChangeHook(ConVarChanged_Cvars);
+	Freeze_players.AddChangeHook(ConVarChanged_Cvars);
+	Admin_Immune.AddChangeHook(ConVarChanged_Cvars);
+	Warp_survivor.AddChangeHook(ConVarChanged_Cvars);
+	GlowAllow.AddChangeHook(ConVarChanged_Cvars);
+	GlowRange.AddChangeHook(ConVarChanged_Cvars);
+	LockColor.AddChangeHook(ConVarChanged_Cvars);
+	OpenColor.AddChangeHook(ConVarChanged_Cvars);
+
+	movementOffset = FindSendPropInfo("CTerrorPlayer", "m_flLaggedMovementValue");
+
 	AutoExecConfig(true, "L4D2_Countdown");
 }
 
@@ -50,12 +64,12 @@ public void OnConfigsExecuted()
 	IsAllowed();
 }
 
-public void ConVarChanged_Allow(ConVar convar, const char[] oldValue, const char[] newValue)
+void ConVarChanged_Allow(ConVar convar, const char[] oldValue, const char[] newValue)
 {
 	IsAllowed();
 }
 
-public void ConVarChanged_Cvars(ConVar convar, const char[] oldValue, const char[] newValue)
+void ConVarChanged_Cvars(ConVar convar, const char[] oldValue, const char[] newValue)
 {
 	GetCvars();
 }
@@ -71,8 +85,8 @@ void IsAllowed()
         HookEvent("player_spawn",		PlayerSpawn);
         HookEvent("round_start",		RoundStart);
         HookEvent("round_end",			RoundEnd);
-        HookEvent("player_left_start_area", LeftSafeZone);
-        HookEvent("player_left_checkpoint", LeftSafeZone);
+        HookEvent("player_left_start_area", LeftSafeZone, EventHookMode_Pre);
+        HookEvent("player_left_checkpoint", LeftSafeZone, EventHookMode_Pre);
         HookEvent("player_disconnect", PlayerDisconnect);
 	}
 	else if(bCvarAllow && !bCountdown_on)
@@ -82,8 +96,8 @@ void IsAllowed()
         UnhookEvent("player_spawn",		PlayerSpawn);
         UnhookEvent("round_start",		RoundStart);
         UnhookEvent("round_end",		RoundEnd);
-        UnhookEvent("player_left_start_area", LeftSafeZone);
-        UnhookEvent("player_left_checkpoint", LeftSafeZone);
+        UnhookEvent("player_left_start_area", LeftSafeZone, EventHookMode_Pre);
+        UnhookEvent("player_left_checkpoint", LeftSafeZone, EventHookMode_Pre);
         UnhookEvent("player_disconnect", PlayerDisconnect);
 	}
 }
@@ -102,33 +116,49 @@ void GetCvars()
 	iCountdown_delay = Countdown_delay.IntValue;
 }
 
+public void L4D_OnFinishIntro()
+{
+	if(L4D_IsFirstMapInScenario() && StandartMap())
+	{
+		StartTimer();
+	}
+}
+
 public void OnClientPutInServer(int client)
+{
+	if(!IsFakeClient(client) && (!L4D_IsFirstMapInScenario() || !StandartMap()))
+	{
+		StartTimer();
+	}
+}
+
+void StartTimer()
 {
 	if(bCountdown_on)
 	{
-    	if(!IsFakeClient(client) || AllPlayersIsFinishedLoading() )
+    	if(IsRealPlayerInGame() > 0 || AllPlayersIsFinishedLoading() )
     	{
     		if(!RoundTwo && !TimerEnd && LockTimerRepeate)
     		{
-    			Delay = iCountdown_delay;
-    			if( L4D_IsFirstMapInScenario() )
-    			{
-    				LockTimerRepeate = false;
-    				if(!CountDownTimer)
-    				{
-    					CountDownTimer = 1;
-    					CreateTimer(15.0, CountDownDelay_Timer, INVALID_HANDLE);
-    					LockAllRotatingSaferoomDoors();
-    				}
-    			}
-    			else
-    			{
-    				LockTimerRepeate = false;
-    				if(!CountDownTimer)
-    				{
-    					CountDownTimer = 1;
-    					CreateTimer(1.5, CountDownDelay_Timer, INVALID_HANDLE);
-    					LockAllRotatingSaferoomDoors();
+                Delay = iCountdown_delay;
+                if( L4D_IsFirstMapInScenario() )
+                {
+                	LockTimerRepeate = false;
+                	if(!CountDownTimer)
+                	{
+                		CountDownTimer = 1;
+                		CreateTimer(15.0, CountDownDelay_Timer, INVALID_HANDLE);
+                		LockAllRotatingSaferoomDoors();
+                	}
+                }
+                else
+                {
+                	LockTimerRepeate = false;
+                	if(!CountDownTimer)
+                	{
+                		CountDownTimer = 1;
+                		CreateTimer(1.5, CountDownDelay_Timer, INVALID_HANDLE);
+                		LockAllRotatingSaferoomDoors();
     				}
     			}
     		}
@@ -136,7 +166,7 @@ public void OnClientPutInServer(int client)
 	}
 }
 
-public void PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
+void PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 {
 	if(bCountdown_on)
 	{
@@ -154,7 +184,7 @@ public void PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 	}
 }
 
-public void RoundStart(Event event, const char[] name, bool dontBroadcast)
+void RoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	if(bCountdown_on)
 	{
@@ -226,7 +256,7 @@ void UnLockAllRotatingSaferoomDoors()
 		if (IsClientInGame(i) && IsPlayerAlive(i)) SetEntProp (i, Prop_Data, "m_takedamage", 2);
 }
 
-public void RoundEnd(Event event, const char[] name, bool dontBroadcast)
+void RoundEnd(Event event, const char[] name, bool dontBroadcast)
 {
 	if(bCountdown_on)
 	{
@@ -238,25 +268,32 @@ public void RoundEnd(Event event, const char[] name, bool dontBroadcast)
 	}
 }
 
-public Action CountDownDelay_Timer(Handle timer, any client)
+Action CountDownDelay_Timer(Handle timer, any client)
 {
 	if(Delay > 0)
 	{
 		for (int i = 1; i <= MaxClients; i++)
 		{
-			if(IsClientInGame(i) && GetClientTeam(i) == 2)
+			if(IsClientInGame(i))
 			{
-				if(!RoundTwo)
+				if(GetClientTeam(i) == 2)
 				{
-				    if(bFreeze_players)
-				    {
-    					SetEntityMoveType(i, MOVETYPE_NONE);
-    					if(bAdmin_Immune)
-    					{
-    						if((GetUserFlagBits(i) & (ADMFLAG_ROOT | ADMFLAG_RESERVATION)) || VIP_IsClientVIP(i))
-    							SetEntityMoveType(i, MOVETYPE_WALK);
-    					}
-				    }
+					if(!RoundTwo)
+					{
+						if(bFreeze_players)
+						{
+							SetEntPropFloat(i, Prop_Data, "m_flLaggedMovementValue", 1.0);
+							SetEntityMoveType(i, MOVETYPE_NONE);
+							if(bAdmin_Immune)
+							{
+								if((GetUserFlagBits(i) & (ADMFLAG_ROOT | ADMFLAG_RESERVATION)) || VIP_IsClientVIP(i))
+								{
+									SetEntityMoveType(i, MOVETYPE_WALK);
+									SetEntDataFloat(i, movementOffset, 1.0, true);
+								}
+							}
+						}
+					}
 				}
 			}
 		}
@@ -271,15 +308,19 @@ public Action CountDownDelay_Timer(Handle timer, any client)
 	{
 		for (int i = 1; i <= MaxClients; i++)
 		{
-			if(IsClientInGame(i) && GetClientTeam(i) == 2)
+			if(IsClientInGame(i))
 			{
-				if(!RoundTwo)
+				if(GetClientTeam(i) == 2)
 				{
-				    if(bFreeze_players)
-				    {
-    					SetEntityMoveType(i, MOVETYPE_WALK);
-				    }
-				    UnLockAllRotatingSaferoomDoors();
+					if(!RoundTwo)
+					{
+						if(bFreeze_players)
+						{
+							SetEntityMoveType(i, MOVETYPE_WALK);
+							SetEntDataFloat(i, movementOffset, 1.0, true);
+						}
+						UnLockAllRotatingSaferoomDoors();
+					}
 				}
 			}
 		}
@@ -294,13 +335,18 @@ void PrintCountdown()
 {
 	if(!TimerEnd && Delay > 0)
 	{
-		PrintHintTextToAll("%t", "Live in: %d", Delay);
+		int RealCon = IsRealPlayerConnected();
+		int RealInGame = IsRealPlayerInGame();
+		PrintHintTextToAll("%t", "LiveIn", RealCon, RealInGame, Delay);
 		if(bEnable_sound) EmitSoundToAll("buttons/blip1.wav", _, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, 0.5);
 	}
-	else PrintHintTextToAll("%t", "Round is live!");
+	else
+	{
+		PrintHintTextToAll("%t", "RoundIsLive");
+	}
 }
 
-public void LeftSafeZone(Event event, const char[] name, bool dontBroadcast)
+void LeftSafeZone(Event event, const char[] name, bool dontBroadcast)
 {
 	if(bCountdown_on && bWarp_survivor && !TimerEnd)
 	{
@@ -310,13 +356,13 @@ public void LeftSafeZone(Event event, const char[] name, bool dontBroadcast)
 			int warp_flags = GetCommandFlags("warp_to_start_area");
 			SetCommandFlags("warp_to_start_area", warp_flags & ~FCVAR_CHEAT);
 			FakeClientCommand(client, "warp_to_start_area");
-			PrintHintText(client, "%t", "%N, do not leave the saferoom until the beginning of the round.", client);
+			PrintHintText(client, "%t", "LeftSafeRoom", client);
 			SetCommandFlags("warp_to_start_area", warp_flags);
 		}
 	}
 }
 
-public Action PlayerDisconnect(Event event, const char[] name, bool dontBroadcast)
+Action PlayerDisconnect(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	if((!client || !IsFakeClient(client)) && !RealPlayerConnected(client))
@@ -326,7 +372,7 @@ public Action PlayerDisconnect(Event event, const char[] name, bool dontBroadcas
 	return Plugin_Continue;
 }
 
-public Action Reset(Handle timer)
+Action Reset(Handle timer)
 {
 	if(!RealPlayerConnected())
 	{
@@ -338,6 +384,32 @@ public Action Reset(Handle timer)
 public void OnMapEnd()
 {
 	ResetBools();
+}
+
+int IsRealPlayerConnected()
+{
+	int iConnecting = 0;
+	for(int i = 1; i < MaxClients; i++ )
+	{
+		if(IsClientConnected(i) && !IsClientInGame(i) && !IsFakeClient(i))
+		{
+			iConnecting++;
+		}
+	}
+	return iConnecting;
+}
+
+int IsRealPlayerInGame()
+{
+	int iInGame = 0;
+	for(int i = 1; i < MaxClients; i++)
+	{
+		if(IsClientConnected(i) && IsClientInGame(i) && !IsFakeClient(i))
+		{
+			iInGame++;
+		}
+	}
+	return iInGame;
 }
 
 bool RealPlayerConnected(int Exclude = 0)
@@ -405,4 +477,27 @@ void ResetBools()
 	TimerEnd = false;
 	LockTimerRepeate = true;
 	if(CountDownTimer) CountDownTimer = 0;
+}
+
+bool StandartMap()
+{
+	if (StrEqual(current_map, "c1m1_hotel", false) || StrEqual(current_map, "c1m2_streets", false) || StrEqual(current_map, "c1m3_mall", false) || StrEqual(current_map, "c1m4_atrium", false)
+	|| StrEqual(current_map, "c2m1_highway", false) || StrEqual(current_map, "c2m2_fairgrounds", false) || StrEqual(current_map, "c2m3_coaster", false) || StrEqual(current_map, "c2m4_barns", false) || StrEqual(current_map, "c2m5_concert", false)
+	|| StrEqual(current_map, "c3m1_plankcountry", false) || StrEqual(current_map, "c3m2_swamp", false) || StrEqual(current_map, "c3m3_shantytown", false) || StrEqual(current_map, "c3m4_plantation", false)
+	|| StrEqual(current_map, "c4m1_milltown_a", false) || StrEqual(current_map, "c4m2_sugarmill_a", false) || StrEqual(current_map, "c4m3_sugarmill_b", false) || StrEqual(current_map, "c4m4_milltown_b", false) || StrEqual(current_map, "c4m5_milltown_escape", false)
+	|| StrEqual(current_map, "c5m1_waterfront", false) || StrEqual(current_map, "c5m2_park", false) || StrEqual(current_map, "c5m3_cemetery", false) || StrEqual(current_map, "c5m4_quarter", false) || StrEqual(current_map, "c5m5_bridge", false)
+	|| StrEqual(current_map, "c6m1_riverbank", false) || StrEqual(current_map, "c6m2_bedlam", false) || StrEqual(current_map, "c6m3_port", false)
+	|| StrEqual(current_map, "c7m1_docks", false) || StrEqual(current_map, "c7m2_barge", false) || StrEqual(current_map, "c7m3_port", false)
+	|| StrEqual(current_map, "c8m1_apartment", false) || StrEqual(current_map, "c8m2_subway", false) || StrEqual(current_map, "c8m3_sewers", false) || StrEqual(current_map, "c8m4_interior", false) || StrEqual(current_map, "c8m5_rooftop", false)
+	|| StrEqual(current_map, "c9m1_alleys", false) || StrEqual(current_map, "c9m2_lots", false)
+	|| StrEqual(current_map, "c10m1_caves", false) || StrEqual(current_map, "c10m2_drainage", false) || StrEqual(current_map, "c10m3_ranchhouse", false) || StrEqual(current_map, "c10m4_mainstreet", false) || StrEqual(current_map, "c10m5_houseboat", false)
+	|| StrEqual(current_map, "c11m1_greenhouse", false) || StrEqual(current_map, "c11m2_offices", false) || StrEqual(current_map, "c11m3_garage", false) || StrEqual(current_map, "c11m4_terminal", false) || StrEqual(current_map, "c11m5_runway", false)
+	|| StrEqual(current_map, "c12m1_hilltop", false) || StrEqual(current_map, "c12m2_traintunnel", false) || StrEqual(current_map, "c12m3_bridge", false) || StrEqual(current_map, "c12m4_barn", false) || StrEqual(current_map, "c12m5_cornfield", false)
+	|| StrEqual(current_map, "c13m1_alpinecreek", false) || StrEqual(current_map, "c13m2_southpinestream", false) || StrEqual(current_map, "c13m3_memorialbridge", false) || StrEqual(current_map, "c13m4_cutthroatcreek", false)
+	|| StrEqual(current_map, "c14m1_junkyard", false) || StrEqual(current_map, "c14m2_lighthouse", false)
+	)
+	{
+		return true;
+	}
+	return false;
 }
