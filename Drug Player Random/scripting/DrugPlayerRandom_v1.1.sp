@@ -6,10 +6,10 @@
 
 #define CVAR_FLAGS	FCVAR_NOTIFY
 
-ConVar g_hCvarDrugOn, g_hCvarRandomDrugChance, g_hCvarDrugMode, g_hCvarDrugTimerMode;
-bool bCvarDrugOn, Adren[MAXPLAYERS + 1], Pills[MAXPLAYERS + 1];
-int iCvarRandomDrugChance, iCvarDrugMode, iCvarDrugTimerMode, PlayerDrugged[MAXPLAYERS + 1];
-Handle g_DrugTimers[MAXPLAYERS + 1], TimerDrug[MAXPLAYERS + 1], TimerDamage[MAXPLAYERS + 1];
+ConVar g_hCvarDrugOn, g_hCvarRandomDrugChance, g_hCvarDrugMode;
+bool Adren[MAXPLAYERS + 1] = {false, ...}, Pills[MAXPLAYERS + 1] = {false, ...};
+int iCvarRandomDrugChance, iCvarDrugMode, PlayerDrugged[MAXPLAYERS + 1] = {0, ...};
+Handle g_DrugTimers[MAXPLAYERS + 1] = {null, ...}, TimerDamage[MAXPLAYERS + 1] = {null, ...};
 float g_DrugAngles[20] = {0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 20.0, 15.0, 10.0, 5.0, 0.0, -5.0, -10.0, -15.0, -20.0, -25.0, -20.0, -15.0, -10.0, -5.0};
 
 public Plugin myinfo =
@@ -17,73 +17,69 @@ public Plugin myinfo =
 	name = "Drug Player Random",
 	author = "BS/IW",
 	description = "Drug Player Random",
-	version = "1.1",
-	url = "http://"
+	version = "1.1.1",
+	url = "http://bloodsiworld.ru/"
 };
-
-//Special thanks:
-// funcommands plugin by SourceMod
 
 public void OnPluginStart()
 {
 	LoadTranslations("DrugPlayerRandom.phrases");
 
-	g_hCvarDrugOn = CreateConVar("RandomDrugChance", "1",	"0=Plugin off, 1=Plugin on.", CVAR_FLAGS );
-	g_hCvarRandomDrugChance = CreateConVar("RandomDrugChance", "5",	"Chance of drug player", CVAR_FLAGS );
-	g_hCvarDrugMode = CreateConVar("DrugMode", "3",	"1 = Drug & Kill, 2 = Only Drug, 3 = Shake & Kill, 4 = Only Shake", CVAR_FLAGS );
-	g_hCvarDrugTimerMode = CreateConVar("DrugTimerMode", "2",	"1 = Kill after 20 sec or only drug or shake(if DrugMode > 0), 2 = Take damage(if DrugMode = 1 or 3)", CVAR_FLAGS );
-
-	bCvarDrugOn = g_hCvarDrugOn.BoolValue;
-	iCvarRandomDrugChance = g_hCvarRandomDrugChance.IntValue;
-	iCvarDrugMode = g_hCvarDrugMode.IntValue;
-	iCvarDrugTimerMode = g_hCvarDrugTimerMode.IntValue;
+	g_hCvarDrugOn = CreateConVar("RandomDrugChance", "1", "0=Plugin off, 1=Plugin on.", CVAR_FLAGS);
+	g_hCvarRandomDrugChance = CreateConVar("RandomDrugChance", "5",	"Chance of drug player", CVAR_FLAGS);
+	g_hCvarDrugMode = CreateConVar("DrugMode", "1",	"1 = Drug & Kill, 2 = Only Drug, 3 = Shake & Kill, 4 = Only Shake", CVAR_FLAGS);
 
 	g_hCvarDrugOn.AddChangeHook(ConVarChanged_Switch);
-	g_hCvarRandomDrugChance.AddChangeHook(ConVarChanged_Chance);
-	g_hCvarDrugMode.AddChangeHook(ConVarChanged_Mode);
-	g_hCvarDrugTimerMode.AddChangeHook(ConVarChanged_TimerMode);
+	g_hCvarRandomDrugChance.AddChangeHook(ConVarChanged);
+	g_hCvarDrugMode.AddChangeHook(ConVarChanged);
 
-	Events();
+	AutoExecConfig(true, "DrugPlayerRandom");
 }
 
-public void ConVarChanged_Switch(ConVar convar, const char[] oldValue, const char[] newValue)
+public void OnConfigsExecuted()
 {
-	Events();
+	IsAllowed();
 }
 
-public void ConVarChanged_Chance(ConVar convar, const char[] oldValue, const char[] newValue)
+void ConVarChanged_Switch(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-	iCvarRandomDrugChance = g_hCvarRandomDrugChance.IntValue;
+	IsAllowed();
 }
 
-public void ConVarChanged_Mode(ConVar convar, const char[] oldValue, const char[] newValue)
+void ConVarChanged(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-	iCvarDrugMode = g_hCvarDrugMode.IntValue;
+	GetCvars();
 }
 
-public void ConVarChanged_TimerMode(ConVar convar, const char[] oldValue, const char[] newValue)
+void IsAllowed()
 {
-	iCvarDrugTimerMode = g_hCvarDrugTimerMode.IntValue;
-}
-
-void Events()
-{
+	bool bCvarDrugOn = g_hCvarDrugOn.BoolValue;
 	if(bCvarDrugOn)
 	{
+		GetCvars();
 		HookEvent("pills_used",	Event_Pills, EventHookMode_Post);
 		HookEvent("adrenaline_used", Event_Adren, EventHookMode_Post);
-		HookEvent("heal_success",	Event_UnDrug, EventHookMode_Post);
+		HookEvent("heal_success",	Event_HealSucces, EventHookMode_Post);
 		HookEvent("round_end", Event_RoundEnd, EventHookMode_Post);
 		HookEvent("player_disconnect", Event_Disconnect, EventHookMode_Pre);
+		HookEvent("map_transition", Event_RoundEnd, EventHookMode_Post);
 	}
 	else
 	{
 		UnhookEvent("pills_used",	Event_Pills, EventHookMode_Post);
 		UnhookEvent("adrenaline_used", Event_Adren, EventHookMode_Post);
-		UnhookEvent("heal_success",	Event_UnDrug, EventHookMode_Post);
+		UnhookEvent("heal_success",	Event_HealSucces, EventHookMode_Post);
 		UnhookEvent("round_end",	Event_RoundEnd, EventHookMode_Post);
 		UnhookEvent("player_disconnect", Event_Disconnect, EventHookMode_Pre);
+		UnhookEvent("map_transition", Event_RoundEnd, EventHookMode_Post);
+		OnMapEnd();
 	}
+}
+
+void GetCvars()
+{
+	iCvarRandomDrugChance = g_hCvarRandomDrugChance.IntValue;
+	iCvarDrugMode = g_hCvarDrugMode.IntValue;
 }
 
 public void OnClientPutInServer(int client)
@@ -93,10 +89,10 @@ public void OnClientPutInServer(int client)
 	Pills[client] = false;
 }
 
-public void Event_UnDrug(Event event, const char[] name, bool dontBroadcast)
+void Event_HealSucces(Event event, const char[] name, bool dontBroadcast)
 {
-	int client = GetClientOfUserId(event.GetInt("userid"));
-	if( client && IsClientInGame(client) )
+	int client = GetClientOfUserId(event.GetInt("subject"));
+	if(client && IsClientInGame(client))
 	{
 		if(PlayerDrugged[client])
 		{
@@ -109,10 +105,8 @@ public void Event_UnDrug(Event event, const char[] name, bool dontBroadcast)
 				StopShake(client);
 			}
 			PlayerDrugged[client] = false;
-			if(TimerDrug[client] != null)
-			{
-				delete TimerDrug[client];
-			}
+			Adren[client] = false;
+			Pills[client] = false;
 			if(TimerDamage[client] != null)
 			{
 				delete TimerDamage[client];
@@ -121,50 +115,39 @@ public void Event_UnDrug(Event event, const char[] name, bool dontBroadcast)
 	}
 }
 
-public void StopShake(int client)
-{
-	Handle hBf = StartMessageOne("Shake", client);
-	if(hBf)
-	{
-		BfWriteByte(hBf, 0);                
-		BfWriteFloat(hBf, 0.0);            // shake magnitude/amplitude
-		BfWriteFloat(hBf, 0.0);                // shake noise frequency
-		BfWriteFloat(hBf, 0.0);                // shake lasts this long
-		EndMessage();
-	}
-}
-
-public void Event_Disconnect(Event event, const char[] name, bool dontBroadcast)
+void Event_Disconnect(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
-	if(iCvarDrugMode == 1 || iCvarDrugMode == 2)
+	if(client && IsClientInGame(client))
 	{
-		KillDrug(client);
-	}
-	else if(iCvarDrugMode == 3 || iCvarDrugMode == 4)
-	{
-		StopShake(client);
-	}
-	PlayerDrugged[client] = false;
-	Adren[client] = false;
-	Pills[client] = false;
-	if(TimerDrug[client] != null)
-	{
-		delete TimerDrug[client];
-	}
-	if(TimerDamage[client] != null)
-	{
-		delete TimerDamage[client];
+		if(PlayerDrugged[client])
+		{
+			if(iCvarDrugMode == 1 || iCvarDrugMode == 2)
+			{
+				KillDrug(client);
+			}
+			else if(iCvarDrugMode == 3 || iCvarDrugMode == 4)
+			{
+				StopShake(client);
+			}
+			PlayerDrugged[client] = false;
+			Adren[client] = false;
+			Pills[client] = false;
+			if(TimerDamage[client] != null)
+			{
+				delete TimerDamage[client];
+			}
+		}
 	}
 }
 
-public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
+void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 {
 	KillAllDrugs();
 	KillTimerDrug();
 }
 
-public void Event_Adren(Event event, const char[] name, bool dontBroadcast)
+void Event_Adren(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	if( client && IsClientInGame(client) && !IsFakeClient(client))
@@ -178,9 +161,9 @@ public void Event_Adren(Event event, const char[] name, bool dontBroadcast)
 	}
 }
 
-public void Event_Pills(Event event, const char[] name, bool dontBroadcast)
+void Event_Pills(Event event, const char[] name, bool dontBroadcast)
 {
-	int client = GetClientOfUserId(event.GetInt("userid"));
+	int client = GetClientOfUserId(event.GetInt("subject"));
 	if( client && IsClientInGame(client) && !IsFakeClient(client))
 	{
 		int DrugRandom = GetRandomInt(0, 100);
@@ -209,66 +192,41 @@ void DrugFunction(int client)
 		else if(Pills[client]) CPrintToChatAll("%t", "Player %N took the tablets with drugs. Cure him or he will die!", client);
 		if(iCvarDrugMode == 1 || iCvarDrugMode == 3)
 		{
-			if(iCvarDrugTimerMode == 1)
+			if(!TimerDamage[client])
 			{
-				if(!TimerDrug[client])
-				{
-					TimerDrug[client] = CreateTimer(20.0, TimerKillDrug, client);
-				}
-			}
-			else if(iCvarDrugTimerMode == 2)
-			{
-				if(!TimerDamage[client])
-				{
-					TimerDamage[client] = CreateTimer(1.0, TimerDamageDrug, client, TIMER_REPEAT);
-				}
+				TimerDamage[client] = CreateTimer(1.0, TimerDamageDrug, client, TIMER_REPEAT);
 			}
 		}
 	}
 }
 
-public Action TimerKillDrug(Handle timer, int client)
+Action TimerDamageDrug(Handle timer, int client)
 {
-	if(iCvarDrugMode == 1 || iCvarDrugMode == 3)
+	ClientCommand(client, "vocalize PlayerLaugh");
+	int iTotalHealth = GetClientHealth(client);
+	float fTotalTempHealth = (GetEntPropFloat(client, Prop_Send, "m_healthBuffer") - (GetGameTime() - GetEntPropFloat(client, Prop_Send, "m_healthBufferTime")) *FindConVar("pain_pills_decay_rate").FloatValue);
+	int iSetHealth = GetClientHealth(client) - 2;
+	float fSetTempHealth = fTotalTempHealth - 2;
+	if((iTotalHealth + fTotalTempHealth) > iTotalHealth)
 	{
-		ForcePlayerSuicide(client);
-		if(iCvarDrugMode == 3 || iCvarDrugMode == 4)
-		{
-			StopShake(client);
-		}
+		SetEntPropFloat(client, Prop_Send, "m_healthBufferTime", GetGameTime());
+		SetEntPropFloat(client, Prop_Send, "m_healthBuffer", fSetTempHealth);
 	}
-	else if (iCvarDrugMode == 2)
+	else if(iTotalHealth > 0)
 	{
-		KillDrug(client);
-	}
-
-	Adren[client] = false;
-	Pills[client] = false;
-	PlayerDrugged[client] = false;
-	TimerDrug[client] = null;
-	return Plugin_Stop;
-}
-
-public Action TimerDamageDrug(Handle timer, int client)
-{
-	int iHealth = GetClientHealth(client) - 2;
-	float fTempHealth = GetTempHealth(client) - 2.0;
-	if(iHealth > 0 || fTempHealth > 0.0)
-	{
-		if(iHealth > 0)
-		{
-			SetEntProp(client, Prop_Send, "m_iHealth", iHealth);
-		}
-
-		if(fTempHealth > 0.0)
-		{
-			SetEntPropFloat(client, Prop_Send, "m_healthBufferTime", GetGameTime());
-			SetEntPropFloat(client, Prop_Send, "m_healthBuffer", fTempHealth);
-		}
+		SetEntProp(client, Prop_Send, "m_iHealth", iSetHealth);
 	}
 	else
 	{
-		StopShake(client);
+		if (iCvarDrugMode == 1 || iCvarDrugMode == 2)
+		{
+			KillDrug(client);
+		}
+		else if(iCvarDrugMode == 3 || iCvarDrugMode == 4)
+		{
+			StopShake(client);
+		}
+
 		Adren[client] = false;
 		Pills[client] = false;
 		PlayerDrugged[client] = false;
@@ -277,13 +235,6 @@ public Action TimerDamageDrug(Handle timer, int client)
 		return Plugin_Stop;
 	}
 	return Plugin_Continue;
-}
-
-float GetTempHealth(int client)
-{
-	float fHealth = GetEntPropFloat(client, Prop_Send, "m_healthBuffer");
-	fHealth -= (GetGameTime() - GetEntPropFloat(client, Prop_Send, "m_healthBufferTime")) * FindConVar("pain_pills_decay_rate").FloatValue;
-	return fHealth < 0.0 ? 0.0 : fHealth;
 }
 
 public void OnMapEnd()
@@ -299,10 +250,6 @@ void KillTimerDrug()
 		if(IsClientInGame(i))
 		{
 			if(PlayerDrugged[i]) PlayerDrugged[i] = false;
-			if(TimerDrug[i] != null)
-			{
-				delete TimerDrug[i];
-			}
 			if(TimerDamage[i] != null)
 			{
 				delete TimerDamage[i];
@@ -317,14 +264,64 @@ void CreateDrug(int client)
 	g_DrugTimers[client] = CreateTimer(1.0, Timer_Drug, client, TIMER_REPEAT);	
 }
 
+Action Timer_Drug(Handle timer, any client)
+{
+	if (!IsClientInGame(client))
+	{
+		KillDrugTimer(client);
+		return Plugin_Stop;
+	}
+
+	if (!IsPlayerAlive(client))
+	{
+		KillDrug(client);		
+		return Plugin_Stop;
+	}
+
+	float pos[3], angs[3];
+	GetClientAbsOrigin(client, pos);
+	GetClientEyeAngles(client, angs);
+	angs[2] = g_DrugAngles[GetRandomInt(0,100) % 20];	
+	TeleportEntity(client, pos, angs, NULL_VECTOR);
+
+	int clients[2];
+	clients[0] = client;	
+
+	Handle message = StartMessageEx(GetUserMessageId("Fade"), clients, 1);
+	BfWriteShort(message, 255);
+	BfWriteShort(message, 255);
+	BfWriteShort(message, (0x0002));
+	BfWriteByte(message, GetRandomInt(0,255));
+	BfWriteByte(message, GetRandomInt(0,255));
+	BfWriteByte(message, GetRandomInt(0,255));
+	BfWriteByte(message, 128);
+	EndMessage();
+
+	return Plugin_Continue;
+}
+
 void KillDrug(int client)
 {
 	KillDrugTimer(client);
 
-	float angs[3];
+	float pos[3], angs[3];
+	GetClientAbsOrigin(client, pos);
 	GetClientEyeAngles(client, angs);
-	angs[2] = 0.0;
-	TeleportEntity(client, NULL_VECTOR, angs, NULL_VECTOR);
+	angs[2] = 0.0;	
+	TeleportEntity(client, pos, angs, NULL_VECTOR);	
+
+	int clients[2];
+	clients[0] = client;	
+
+	Handle message = StartMessageEx(GetUserMessageId("Fade"), clients, 1);
+	BfWriteShort(message, 1536);
+	BfWriteShort(message, 1536);
+	BfWriteShort(message, (0x0001 | 0x0010));
+	BfWriteByte(message, 0);
+	BfWriteByte(message, 0);
+	BfWriteByte(message, 0);
+	BfWriteByte(message, 0);
+	EndMessage();	
 }
 
 void KillDrugTimer(int client)
@@ -332,7 +329,7 @@ void KillDrugTimer(int client)
 	delete g_DrugTimers[client];	
 }
 
-int KillAllDrugs()
+void KillAllDrugs()
 {
 	for (int i = 1; i <= MaxClients; i++)
 	{
@@ -350,30 +347,10 @@ int KillAllDrugs()
 	}
 }
 
-public Action Timer_Drug(Handle timer, any client)
+void Shake(int target, float duration)
 {
-	if (!IsClientInGame(client))
-	{
-		KillDrugTimer(client);
-		return Plugin_Handled;
-	}
+	if(!IsClientInGame(target) || GetClientTeam(target) != 2 || !IsPlayerAlive(target)) return;
 
-	if (!IsPlayerAlive(client))
-	{
-		KillDrug(client);		
-		return Plugin_Handled;
-	}
-
-	float angs[3];
-	GetClientEyeAngles(client, angs);
-	angs[2] = g_DrugAngles[GetRandomInt(0,100) % 20];
-	TeleportEntity(client, NULL_VECTOR, angs, NULL_VECTOR);
-
-	return Plugin_Handled;
-}
-
-public Action Shake(int target, float duration)
-{
 	Handle hBf = StartMessageOne("Shake", target);
 	if(hBf)
 	{
@@ -381,6 +358,19 @@ public Action Shake(int target, float duration)
 		BfWriteFloat(hBf, 16.0);            // shake magnitude/amplitude
 		BfWriteFloat(hBf, 0.5);                // shake noise frequency
 		BfWriteFloat(hBf, duration);                // shake lasts this long
+		EndMessage();
+	}
+}
+
+void StopShake(int client)
+{
+	Handle hBf = StartMessageOne("Shake", client);
+	if(hBf)
+	{
+		BfWriteByte(hBf, 0);                
+		BfWriteFloat(hBf, 0.0);            // shake magnitude/amplitude
+		BfWriteFloat(hBf, 0.0);                // shake noise frequency
+		BfWriteFloat(hBf, 0.0);                // shake lasts this long
 		EndMessage();
 	}
 }
