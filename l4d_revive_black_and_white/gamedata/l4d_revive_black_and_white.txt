@@ -1,0 +1,30 @@
+"Games"
+{
+    "left4dead"
+    {		
+		"Signatures"
+		{
+			"CTerrorPlayer::OnRevived"
+			{
+				"library"	"server"
+				"linux"		"@_ZN13CTerrorPlayer9OnRevivedEv"
+				"windows"	"\x2A\x2A\x2A\x2A\x2A\x56\x57\x8B\xF9\x8B\x07\x8B\x90\x2A\x2A\x2A\x2A\xFF\xD2\x84\xC0\x0F\x84"
+				/* ? ? ? ? ? 56 57 8B F9 8B 07 8B 90 ? ? ? ? FF D2 84 C0 0F 84 */
+			}
+		}
+    }
+    
+    "left4dead2"
+    {	
+		"Signatures"
+		{
+			"CTerrorPlayer::OnRevived"
+			{
+				"library"	"server"
+				"linux"		"@_ZN13CTerrorPlayer9OnRevivedEv"
+				"windows"	"\x2A\x2A\x2A\x2A\x2A\x2A\x53\x56\x8B\xF1\x8B\x06\x8B\x90\x2A\x2A\x2A\x2A\x57\xFF\xD2\x84\xC0\x0F\x84\x2A\x2A\x2A\x2A\x8B\xCE"
+				/* ? ? ? ? ? ? 53 56 8B F1 8B 06 8B 90 ? ? ? ? 57 FF D2 84 C0 0F 84 ? ? ? ? 8B CE */
+			}
+		}
+    }
+}
