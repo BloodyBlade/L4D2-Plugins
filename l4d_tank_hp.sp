@@ -96,8 +96,6 @@ void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
     {
         float fMultiple = 0.0;
         int SetTankHP = 0, iPlayersCount = 0;
-        TankBasicHP = hBasicTankHP.IntValue;
-        TankAddHP = hAddTankHP.IntValue;
 
         char cDifficulty[16];
         hDiffuculty.GetString(cDifficulty, sizeof(cDifficulty));
