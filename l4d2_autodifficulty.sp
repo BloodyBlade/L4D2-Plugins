@@ -638,163 +638,166 @@ stock int GetGameMode()
 
 public void Autodifficulty(int playerscount)
 {
-    if (playerscount < 4)
-        playerscount = 4;
-        
-    int BonusDrop = 0;
-    if (GetGameMode() == 8)
-    {
-        BonusDrop = 2;
-    }
-        
-    int ItemsDropCount[7];
+	if (playerscount < 4)
+		playerscount = 4;
+		
+	int BonusDrop = 0;
+	if (GetGameMode() == 8)
+	{
+		BonusDrop = 2;
+	}
+		
+	int ItemsDropCount[7];
 
-//	GetTotalDifficultyMultiplier();
+	//	GetTotalDifficultyMultiplier();
 
-    if(bFindLootPLugin)
-    {
-        l4d2_loot_h_drop_items = FindConVar("l4d2_loot_h_drop_items");
-        l4d2_loot_b_drop_items = FindConVar("l4d2_loot_b_drop_items");
-        l4d2_loot_s_drop_items = FindConVar("l4d2_loot_s_drop_items");
-        l4d2_loot_c_drop_items = FindConVar("l4d2_loot_c_drop_items");
-        l4d2_loot_sp_drop_items = FindConVar("l4d2_loot_sp_drop_items");
-        l4d2_loot_j_drop_items = FindConVar("l4d2_loot_j_drop_items");
-        l4d2_loot_t_drop_items = FindConVar("l4d2_loot_t_drop_items");   
-    //	l4d2_loot_g_chance_nodrop = FindConVar("l4d2_loot_g_chance_nodrop");
-    }
+	if(bFindLootPLugin)
+	{
+		l4d2_loot_h_drop_items = FindConVar("l4d2_loot_h_drop_items");
+		l4d2_loot_b_drop_items = FindConVar("l4d2_loot_b_drop_items");
+		l4d2_loot_s_drop_items = FindConVar("l4d2_loot_s_drop_items");
+		l4d2_loot_c_drop_items = FindConVar("l4d2_loot_c_drop_items");
+		l4d2_loot_sp_drop_items = FindConVar("l4d2_loot_sp_drop_items");
+		l4d2_loot_j_drop_items = FindConVar("l4d2_loot_j_drop_items");
+		l4d2_loot_t_drop_items = FindConVar("l4d2_loot_t_drop_items");   
+	//	l4d2_loot_g_chance_nodrop = FindConVar("l4d2_loot_g_chance_nodrop");
+	}
 
-    ConVar sv_disable_glow_survivors = FindConVar("sv_disable_glow_survivors");
+	ConVar sv_disable_glow_survivors = FindConVar("sv_disable_glow_survivors");
 
-    if (DifficultyMultiplier[0] < 5)
-    {
-        sv_disable_glow_survivors.SetInt(0, false, false);
-    }
-    else
-    {
-        sv_disable_glow_survivors.SetInt(1, false, false);
-    }
+	if (DifficultyMultiplier[0] < 5)
+	{
+		sv_disable_glow_survivors.SetInt(0, false, false);
+	}
+	else
+	{
+		sv_disable_glow_survivors.SetInt(1, false, false);
+	}
 
-    if (playerscount > 4)
-    {
-        tank_burn_duration.SetInt(RoundToZero(18.75 * playerscount), false, false);
+	if (playerscount > 4)
+	{
+		tank_burn_duration.SetInt(RoundToZero(18.75 * playerscount), false, false);
 
-        z_spitter_max_wait_time.SetInt(34 - playerscount, false, false);
-        z_vomit_interval.SetInt(34 - playerscount, false, false);
+		z_spitter_max_wait_time.SetInt(34 - playerscount, false, false);
+		z_vomit_interval.SetInt(34 - playerscount, false, false);
 
-        z_smoker_speed.SetInt(210 + RoundToZero(3.0 * (playerscount - 4) * DifficultyMultiplier[0]), false, false); 
-        z_boomer_speed.SetInt(175 + RoundToZero(3.0 * (playerscount - 4) * DifficultyMultiplier[0]), false, false); 
-        z_spitter_speed.SetInt(160 + RoundToZero(15.0 * playerscount * DifficultyMultiplier[0]), false, false);
-        z_tank_speed.SetInt(210 + RoundToZero((playerscount - 4) * 5 * DifficultyMultiplier[0]), false, false);
+		z_smoker_speed.SetInt(210 + RoundToZero(3.0 * (playerscount - 4) * DifficultyMultiplier[0]), false, false); 
+		z_boomer_speed.SetInt(175 + RoundToZero(3.0 * (playerscount - 4) * DifficultyMultiplier[0]), false, false); 
+		z_spitter_speed.SetInt(160 + RoundToZero(15.0 * playerscount * DifficultyMultiplier[0]), false, false);
+		z_tank_speed.SetInt(210 + RoundToZero((playerscount - 4) * 5 * DifficultyMultiplier[0]), false, false);
 
-        z_hunter_limit.SetInt(RoundToZero(2.5 + (playerscount / 5)), false, false);
-        z_smoker_limit.SetInt(RoundToZero(1.5 + (playerscount / 6)), false, false);
-        z_boomer_limit.SetInt(RoundToZero(1.5 + (playerscount / 7)), false, false);
-        z_charger_limit.SetInt(RoundToZero(0.3 + (playerscount / 7)), false, false);
-        z_spitter_limit.SetInt(RoundToZero(1.4 + (playerscount / 6)), false, false);
-        z_jockey_limit.SetInt(RoundToZero(0.5 + (playerscount / 8)), false, false);
+		z_hunter_limit.SetInt(RoundToZero(2.5 + (playerscount / 5)), false, false);
+		z_smoker_limit.SetInt(RoundToZero(1.5 + (playerscount / 6)), false, false);
+		z_boomer_limit.SetInt(RoundToZero(1.5 + (playerscount / 7)), false, false);
+		z_charger_limit.SetInt(RoundToZero(0.3 + (playerscount / 7)), false, false);
+		z_spitter_limit.SetInt(RoundToZero(1.4 + (playerscount / 6)), false, false);
+		z_jockey_limit.SetInt(RoundToZero(0.5 + (playerscount / 8)), false, false);
 
-        if(bFindLootPLugin)
-        {	
-            ItemsDropCount[0] = CheckCvarMin(RoundToZero((playerscount / 5.3) * SquareRoot(DifficultyMultiplier[0])), 1);
-            ItemsDropCount[1] = CheckCvarMin(RoundToZero((playerscount / 4.0) * SquareRoot(DifficultyMultiplier[0])), 1);
-            ItemsDropCount[2] = CheckCvarMin(RoundToZero((playerscount / 4.0) * SquareRoot(DifficultyMultiplier[0])), 1);
-            ItemsDropCount[3] = CheckCvarMin(RoundToZero((playerscount / 4.6) * SquareRoot(DifficultyMultiplier[0])), 1);
-            ItemsDropCount[4] = CheckCvarMin(RoundToZero((playerscount / 4.6) * SquareRoot(DifficultyMultiplier[0])), 1);
-            ItemsDropCount[5] = CheckCvarMin(RoundToZero((playerscount / 4.6) * SquareRoot(DifficultyMultiplier[0])), 1);
-            ItemsDropCount[6] = CheckCvarMin(RoundToZero(playerscount * 5 * SquareRoot(DifficultyMultiplier[0])), 5);
-            
-            l4d2_loot_h_drop_items.SetInt(CheckCvarMax(ItemsDropCount[0], 2) + BonusDrop, false, false);
-            l4d2_loot_b_drop_items.SetInt(CheckCvarMax(ItemsDropCount[1], 4) + BonusDrop, false, false);
-            l4d2_loot_s_drop_items.SetInt(CheckCvarMax(ItemsDropCount[2], 2) + BonusDrop, false, false);
-            l4d2_loot_c_drop_items.SetInt(CheckCvarMax(ItemsDropCount[3], 4) + BonusDrop, false, false);
-            l4d2_loot_sp_drop_items.SetInt(CheckCvarMax(ItemsDropCount[4], 3) + BonusDrop, false, false);
-            l4d2_loot_j_drop_items.SetInt(CheckCvarMax(ItemsDropCount[5], 3) + BonusDrop, false, false);
-            l4d2_loot_t_drop_items.SetInt(CheckCvarMax(ItemsDropCount[6] + (BonusDrop * 3), playerscount) + BonusDrop, false, false);
-        }
+		if(bFindLootPLugin)
+		{	
+			ItemsDropCount[0] = CheckCvarMin(RoundToZero((playerscount / 5.3) * SquareRoot(DifficultyMultiplier[0])), 1);
+			ItemsDropCount[1] = CheckCvarMin(RoundToZero((playerscount / 4.0) * SquareRoot(DifficultyMultiplier[0])), 1);
+			ItemsDropCount[2] = CheckCvarMin(RoundToZero((playerscount / 4.0) * SquareRoot(DifficultyMultiplier[0])), 1);
+			ItemsDropCount[3] = CheckCvarMin(RoundToZero((playerscount / 4.6) * SquareRoot(DifficultyMultiplier[0])), 1);
+			ItemsDropCount[4] = CheckCvarMin(RoundToZero((playerscount / 4.6) * SquareRoot(DifficultyMultiplier[0])), 1);
+			ItemsDropCount[5] = CheckCvarMin(RoundToZero((playerscount / 4.6) * SquareRoot(DifficultyMultiplier[0])), 1);
+			ItemsDropCount[6] = CheckCvarMin(RoundToZero(playerscount * 5 * SquareRoot(DifficultyMultiplier[0])), 5);
+			
+			l4d2_loot_h_drop_items.SetInt(CheckCvarMax(ItemsDropCount[0], 2) + BonusDrop, false, false);
+			l4d2_loot_b_drop_items.SetInt(CheckCvarMax(ItemsDropCount[1], 4) + BonusDrop, false, false);
+			l4d2_loot_s_drop_items.SetInt(CheckCvarMax(ItemsDropCount[2], 2) + BonusDrop, false, false);
+			l4d2_loot_c_drop_items.SetInt(CheckCvarMax(ItemsDropCount[3], 4) + BonusDrop, false, false);
+			l4d2_loot_sp_drop_items.SetInt(CheckCvarMax(ItemsDropCount[4], 3) + BonusDrop, false, false);
+			l4d2_loot_j_drop_items.SetInt(CheckCvarMax(ItemsDropCount[5], 3) + BonusDrop, false, false);
+			l4d2_loot_t_drop_items.SetInt(CheckCvarMax(ItemsDropCount[6] + (BonusDrop * 3), playerscount) + BonusDrop, false, false);
+		}
 
-        z_hunter_health.SetInt(RoundToZero(30.0 * playerscount * DifficultyMultiplier[0]), false, false);
-        z_smoker_health.SetInt(RoundToZero(52.5 * playerscount * DifficultyMultiplier[0]), false, false);
-        z_boomer_health.SetInt(RoundToZero(8.5 * playerscount * DifficultyMultiplier[0]), false, false);
-        z_charger_health.SetInt(CheckCvarMax(RoundToZero(75.0 * playerscount * DifficultyMultiplier[0]), 2000), false, false);
-        z_spitter_health.SetInt(RoundToZero(20.0 * playerscount * DifficultyMultiplier[0]), false, false);
-        z_jockey_health.SetInt(RoundToZero(50.25 * playerscount * DifficultyMultiplier[0]), false, false);
+		z_hunter_health.SetInt(RoundToZero(30.0 * playerscount * DifficultyMultiplier[0]), false, false);
+		z_smoker_health.SetInt(RoundToZero(52.5 * playerscount * DifficultyMultiplier[0]), false, false);
+		z_boomer_health.SetInt(RoundToZero(8.5 * playerscount * DifficultyMultiplier[0]), false, false);
+		z_charger_health.SetInt(CheckCvarMax(RoundToZero(75.0 * playerscount * DifficultyMultiplier[0]), 2000), false, false);
+		z_spitter_health.SetInt(RoundToZero(20.0 * playerscount * DifficultyMultiplier[0]), false, false);
+		z_jockey_health.SetInt(RoundToZero(50.25 * playerscount * DifficultyMultiplier[0]), false, false);
 //		z_witch_health.SetInt(CheckCvarMax(RoundToZero(250.0 * playerscount * DifficultyMultiplier[0]), 3000), false, false);
-        z_health.SetInt(RoundToZero(8.5 * playerscount * DifficultyMultiplier[0]), false, false);
-        
-        grenadelauncher_damage.SetInt(RoundToZero((187.5 * playerscount) + 0.3), false, false);
-        
-        z_special_spawn_interval.SetInt(CheckCvarMin(49 - (playerscount * 3), 5), false, false);
-        special_respawn_interval.SetInt(CheckCvarMin(49 - (playerscount * 3), 5), false, false);		
-    }
-    else
-    {
-        z_hunter_health.SetInt(250, false, false);
-        z_smoker_health.SetInt(250, false, false);
-        z_boomer_health.SetInt(50, false, false);
-        z_charger_health.SetInt(600, false, false);
-        z_spitter_health.SetInt(100, false, false);
-        z_jockey_health.SetInt(325, false, false);
+		z_health.SetInt(RoundToZero(8.5 * playerscount * DifficultyMultiplier[0]), false, false);
+		
+		grenadelauncher_damage.SetInt(RoundToZero((187.5 * playerscount) + 0.3), false, false);
+		
+		z_special_spawn_interval.SetInt(CheckCvarMin(49 - (playerscount * 3), 5), false, false);
+		special_respawn_interval.SetInt(CheckCvarMin(49 - (playerscount * 3), 5), false, false);		
+	}
+	else
+	{
+		z_hunter_health.SetInt(250, false, false);
+		z_smoker_health.SetInt(250, false, false);
+		z_boomer_health.SetInt(50, false, false);
+		z_charger_health.SetInt(600, false, false);
+		z_spitter_health.SetInt(100, false, false);
+		z_jockey_health.SetInt(325, false, false);
 //		z_witch_health.SetInt(1000, false, false);
-        z_health.SetInt(50, false, false);
+		z_health.SetInt(50, false, false);
 
-        z_special_spawn_interval.SetInt(45, false, false);
+		z_special_spawn_interval.SetInt(45, false, false);
 
-        z_hunter_limit.SetInt(1, false, false);
-        z_smoker_limit.SetInt(1, false, false);
-        z_boomer_limit.SetInt(1, false, false);
-        z_charger_limit.SetInt(1, false, false);
-        z_spitter_limit.SetInt(1, false, false);
-        z_jockey_limit.SetInt(1, false, false);
+		z_hunter_limit.SetInt(1, false, false);
+		z_smoker_limit.SetInt(1, false, false);
+		z_boomer_limit.SetInt(1, false, false);
+		z_charger_limit.SetInt(1, false, false);
+		z_spitter_limit.SetInt(1, false, false);
+		z_jockey_limit.SetInt(1, false, false);
 
-        z_smoker_speed.SetInt(210, false, false);
-        z_spitter_max_wait_time.SetInt(30, false, false);
-        z_boomer_speed.SetInt(175, false, false);
-        z_spitter_speed.SetInt(210, false, false);
-        z_tank_speed.SetInt(210, false, false);
+		z_smoker_speed.SetInt(210, false, false);
+		z_spitter_max_wait_time.SetInt(30, false, false);
+		z_boomer_speed.SetInt(175, false, false);
+		z_spitter_speed.SetInt(210, false, false);
+		z_tank_speed.SetInt(210, false, false);
 
-        grenadelauncher_damage.SetInt(400, false, false);
-    }
+		grenadelauncher_damage.SetInt(400, false, false);
+	}
 
-    smoker_pz_claw_dmg.SetInt(playerscount, false, false);
-    jockey_pz_claw_dmg.SetInt(playerscount, false, false);
-    tongue_choke_damage_amount.SetInt(RoundToZero((10 + (playerscount - 4) * 1.666) * DifficultyMultiplier[0]), false, false);
-    tongue_drag_damage_amount.SetInt(RoundToZero(playerscount * 0.75 * DifficultyMultiplier[0]), false, false);
-    tongue_miss_delay.SetInt(CheckCvarMin(17 - playerscount, 1), false, false);
-    tongue_hit_delay.SetInt(CheckCvarMin(17 - playerscount, 1), false, false);
+	smoker_pz_claw_dmg.SetInt(playerscount, false, false);
+	jockey_pz_claw_dmg.SetInt(playerscount, false, false);
+	tongue_choke_damage_amount.SetInt(RoundToZero((10 + (playerscount - 4) * 1.666) * DifficultyMultiplier[0]), false, false);
+	tongue_drag_damage_amount.SetInt(RoundToZero(playerscount * 0.75 * DifficultyMultiplier[0]), false, false);
+	tongue_miss_delay.SetInt(CheckCvarMin(17 - playerscount, 1), false, false);
+	tongue_hit_delay.SetInt(CheckCvarMin(17 - playerscount, 1), false, false);
 
 //	l4d2_loot_g_chance_nodrop.SetInt(CheckCvarMin(RoundToZero(65 / DifficultyMultiplier[0]), 5), false, false);
-    if (IsMapFinished.BoolValue)
-    {
-        ConVar monsterbots_interval = FindConVar("monsterbots_interval");
-        monsterbots_interval.SetInt(CheckCvarMin(26 - playerscount, 7), false, false);
-    }
+	if(IsMapFinished != null)
+	{
+		if (IsMapFinished.BoolValue)
+		{
+			ConVar monsterbots_interval = FindConVar("monsterbots_interval");
+			monsterbots_interval.SetInt(CheckCvarMin(26 - playerscount, 7), false, false);
+		}
+	}
 
-    tongue_range.SetInt(750 + RoundToZero((playerscount - 4) * 20 * DifficultyMultiplier[0]), false, false);
+	tongue_range.SetInt(750 + RoundToZero((playerscount - 4) * 20 * DifficultyMultiplier[0]), false, false);
 
-    z_spitter_range.SetInt(850 + RoundToZero((playerscount - 4) * 20 * DifficultyMultiplier[0]), false, false);
-    z_spit_interval.SetInt(CheckCvarMin(20 - RoundToZero((playerscount - 4) * 0.83 * DifficultyMultiplier[0]), 5), false, false);
+	z_spitter_range.SetInt(850 + RoundToZero((playerscount - 4) * 20 * DifficultyMultiplier[0]), false, false);
+	z_spit_interval.SetInt(CheckCvarMin(20 - RoundToZero((playerscount - 4) * 0.83 * DifficultyMultiplier[0]), 5), false, false);
 
-    char sGameDifficulty[16];
-    z_difficulty.GetString(sGameDifficulty, sizeof(sGameDifficulty));
+	char sGameDifficulty[16];
+	z_difficulty.GetString(sGameDifficulty, sizeof(sGameDifficulty));
 
-    int TankHP = 4000;
-    if (StrEqual(sGameDifficulty, "Easy", false))
-    {
-        TankHP = RoundToZero(500 * playerscount * DifficultyMultiplier[0]);
-    }
-    else if (StrEqual(sGameDifficulty, "Normal", false))
-    {
-        TankHP = RoundToZero(600 * playerscount * DifficultyMultiplier[0]);
-    }
-    else if (StrEqual(sGameDifficulty, "Hard", false))
-    {
-        TankHP = RoundToZero(700 * playerscount * DifficultyMultiplier[0]);
-    }
-    else if (StrEqual(sGameDifficulty, "Impossible", false))
-    {
-        TankHP = RoundToZero(800 * DifficultyMultiplier[0] * playerscount);
-    }
-    TankHP = CheckCvarMin(TankHP, 4000);
-    TankHP = CheckCvarMax(TankHP, 35000);
-    z_tank_health.SetInt(TankHP, false, false);
+	int TankHP = 4000;
+	if (StrEqual(sGameDifficulty, "Easy", false))
+	{
+		TankHP = RoundToZero(500 * playerscount * DifficultyMultiplier[0]);
+	}
+	else if (StrEqual(sGameDifficulty, "Normal", false))
+	{
+		TankHP = RoundToZero(600 * playerscount * DifficultyMultiplier[0]);
+	}
+	else if (StrEqual(sGameDifficulty, "Hard", false))
+	{
+		TankHP = RoundToZero(700 * playerscount * DifficultyMultiplier[0]);
+	}
+	else if (StrEqual(sGameDifficulty, "Impossible", false))
+	{
+		TankHP = RoundToZero(800 * DifficultyMultiplier[0] * playerscount);
+	}
+	TankHP = CheckCvarMin(TankHP, 4000);
+	TankHP = CheckCvarMax(TankHP, 35000);
+	z_tank_health.SetInt(TankHP, false, false);
 }
