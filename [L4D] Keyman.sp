@@ -16,7 +16,7 @@ public Plugin myinfo =
 {
 	name = "[L4D2] Anti-Runner System feat.Assault door",
 	description = "Only Keyman can open saferoom door.",
-	author = "ztar",
+	author = "ztar(Edit. by BloodyBlade)",
 	version = "1.0",
 	url = "http://ztar.blog7.fc2.com/"
 };
@@ -1315,5 +1315,6 @@ void ResetTimer()
 		delete g_hTimer;
 	}
 }
+
 
  
