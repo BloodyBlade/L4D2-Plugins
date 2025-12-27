@@ -432,11 +432,11 @@ Action Command_SwapTo(int client, int args)
 	GetCmdArg(args, teamStr, sizeof(teamStr));
 	int team = StringToInt(teamStr);
 
-	if(!team)
-	{
-		ReplyToCommand(client, "[SM] Invalid team %s specified, needs to be 1, 2, or 3", teamStr);
-		return Plugin_Handled;
-	}
+    if (team < 0 || team > 3)
+    {
+        ReplyToCommand(client, "[SM] Invalid team %s specified, needs to be 1, 2, or 3", teamStr);
+        return Plugin_Handled;
+    }
 
 	char player[64];
 
@@ -2018,3 +2018,4 @@ bool IsFirstMap()
 	return !IsServerProcessing() || (GetFeatureStatus(FeatureType_Native, "L4D_IsFirstMapInScenario") == FeatureStatus_Available && L4D_IsFirstMapInScenario());
 }
 /**/
+
