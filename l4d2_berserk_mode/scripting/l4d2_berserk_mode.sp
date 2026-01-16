@@ -2834,58 +2834,67 @@ void AdrenReload(int client)
 //called for mag loaders
 void MagStart(int iEntid, int client)
 {
-	#if RSDEBUG
-	PrintToChatAll("\x05-magazine loader detected,\x03 gametime \x01%f", GetGameTime());
-	#endif
-	float flGameTime = GetGameTime();
-	float flNextTime_ret = GetEntDataFloat(iEntid,g_iNextPAttO);
-	#if RSDEBUG
-	PrintToChatAll("\x03- pre, gametime \x01%f\x03, retrieved nextattack\x01 %i %f\x03, retrieved time idle \x01%i %f",
-		flGameTime,
-		g_iNextAttO,
-		GetEntDataFloat(client,g_iNextAttO),
-		g_iTimeIdleO,
-		GetEntDataFloat(iEntid,g_iTimeIdleO)
-		);
-	#endif
+	if(client > 0)
+	{
+		#if RSDEBUG
+		PrintToChatAll("\x05-magazine loader detected,\x03 gametime \x01%f", GetGameTime());
+		#endif
+		float flGameTime = GetGameTime();
+		float flNextTime_ret = GetEntDataFloat(iEntid,g_iNextPAttO);
+		#if RSDEBUG
+		PrintToChatAll("\x03- pre, gametime \x01%f\x03, retrieved nextattack\x01 %i %f\x03, retrieved time idle \x01%i %f",
+			flGameTime,
+			g_iNextAttO,
+			GetEntDataFloat(client,g_iNextAttO),
+			g_iTimeIdleO,
+			GetEntDataFloat(iEntid,g_iTimeIdleO)
+			);
+		#endif
 
-	//this is a calculation of when the next primary attack will be after applying reload values
-	//NOTE: at this point, only calculate the interval itself, without the actual game engine time factored in
-	
-	float flNextTime_calc = ( flNextTime_ret - flGameTime ) * g_fl_reload_rate ;
-	
-	//we change the playback rate of the gun, just so the player can "see" the gun reloading faster
-	
-	SetEntDataFloat(iEntid, g_iPlayRateO, 1.0/g_fl_reload_rate, true);
-	
-	//create a timer to reset the playrate after time equal to the modified attack interval
-	
-	CreateTimer( flNextTime_calc, Timer_MagEnd, iEntid, TIMER_FLAG_NO_MAPCHANGE);
-	
-	//experiment to remove double-playback bug
-	DataPack hPack;
-	//now we create the timer that will prevent the annoying double playback
-	if ( (flNextTime_calc - 0.4) > 0 )
-		CreateDataTimer( flNextTime_calc - 0.4 , Timer_MagEnd2, hPack, TIMER_FLAG_NO_MAPCHANGE);
-	hPack.WriteCell(client);
-	//this calculates the equivalent time for the reload to end
-	float flStartTime_calc = flGameTime - ( flNextTime_ret - flGameTime ) * ( 1 - g_fl_reload_rate ) ;
-	hPack.WriteFloat(flStartTime_calc);
-	//and finally we set the end reload time into the gun so the player can actually shoot with it at the end
-	flNextTime_calc += flGameTime;
-	SetEntDataFloat(iEntid, g_iTimeIdleO, flNextTime_calc, true);
-	SetEntDataFloat(iEntid, g_iNextPAttO, flNextTime_calc, true);
-	SetEntDataFloat(client, g_iNextAttO, flNextTime_calc, true);
-	#if RSDEBUG
-	PrintToChatAll("\x03- post, calculated nextattack \x01%f\x03, gametime \x01%f\x03, retrieved nextattack\x01 %i %f\x03, retrieved time idle \x01%i %f",
-		flNextTime_calc,
-		flGameTime,
-		g_iNextAttO,
-		GetEntDataFloat(client,g_iNextAttO),
-		g_iTimeIdleO,
-		GetEntDataFloat(iEntid,g_iTimeIdleO)
-		);
-	#endif
+		//this is a calculation of when the next primary attack will be after applying reload values
+		//NOTE: at this point, only calculate the interval itself, without the actual game engine time factored in
+		
+		float flNextTime_calc = ( flNextTime_ret - flGameTime ) * g_fl_reload_rate ;
+		
+		//we change the playback rate of the gun, just so the player can "see" the gun reloading faster
+		
+		SetEntDataFloat(iEntid, g_iPlayRateO, 1.0/g_fl_reload_rate, true);
+		
+		//create a timer to reset the playrate after time equal to the modified attack interval
+		
+		CreateTimer( flNextTime_calc, Timer_MagEnd, iEntid, TIMER_FLAG_NO_MAPCHANGE);
+		
+		//experiment to remove double-playback bug
+		DataPack hPack;
+		//now we create the timer that will prevent the annoying double playback
+		if ( (flNextTime_calc - 0.4) > 0 )
+		{
+			CreateDataTimer(flNextTime_calc - 0.4, Timer_MagEnd2, hPack, TIMER_FLAG_NO_MAPCHANGE);
+		}
+		else
+		{
+			CreateDataTimer(flNextTime_calc, Timer_MagEnd2, hPack, TIMER_FLAG_NO_MAPCHANGE);
+		}
+		hPack.WriteCell(client);
+		//this calculates the equivalent time for the reload to end
+		float flStartTime_calc = flGameTime - ( flNextTime_ret - flGameTime ) * ( 1 - g_fl_reload_rate ) ;
+		hPack.WriteFloat(flStartTime_calc);
+		//and finally we set the end reload time into the gun so the player can actually shoot with it at the end
+		flNextTime_calc += flGameTime;
+		SetEntDataFloat(iEntid, g_iTimeIdleO, flNextTime_calc, true);
+		SetEntDataFloat(iEntid, g_iNextPAttO, flNextTime_calc, true);
+		SetEntDataFloat(client, g_iNextAttO, flNextTime_calc, true);
+		#if RSDEBUG
+		PrintToChatAll("\x03- post, calculated nextattack \x01%f\x03, gametime \x01%f\x03, retrieved nextattack\x01 %i %f\x03, retrieved time idle \x01%i %f",
+			flNextTime_calc,
+			flGameTime,
+			g_iNextAttO,
+			GetEntDataFloat(client,g_iNextAttO),
+			g_iTimeIdleO,
+			GetEntDataFloat(iEntid,g_iTimeIdleO)
+			);
+		#endif
+	}
 }
 
 //called for autoshotguns
