@@ -1,0 +1,82 @@
+"Phrases"
+{
+	"COMMAND_NO_ACCESS"
+	{
+		"en"		"You do not have permission to access this command!"
+		"fi"		"Sinulla ei ole lupaa käyttää tätä komentoa!"
+		"de"		"Sie haben kein Zugriff auf diesen Command!"
+		"pt_p"		"Não tens permissão para aceder a este comando!"
+		"ru"		"У вас нет прав для доступа к этой команде!"
+		"ua"		"У вас немає прав для доступу до цієї команди!"
+	}
+
+	"RESPAWN_OFF"
+	{
+		"en"		"Revival is off!"
+		"ru"		"Возрождение отключено!"
+		"ua"		"Відродження вимкнено!"
+	}
+
+	"RESPAWN_FORBIDDEN"
+	{
+		"en"		"Revival is forbidden!"
+		"ru"		"Возрождение запрещено!"
+		"ua"		"Відродження заборонено!"
+	}
+
+	"RESPAWN_FORBIDDEN_ON_WARMUP"
+	{
+		"en"		"Revival is forbidden in a warm-up round!"
+		"ru"		"Возрождение запрещено на разминочном раунде!"
+		"ua"		"Відродження заборонено на разминочном раунді!"
+	}
+
+	"RESPAWN_NOT_AVAILABLE_YET"
+	{
+		"en"		"Respawn is not available yet!"
+		"ru"		"Возрождение еще не доступно!"
+		"ua"		"Відродження ще не доступне!"
+	}
+
+	"YOU_MUST_BE_ON_TEAM"
+	{
+		"en"		"You must be on the team!"
+		"ru"		"Вы должны быть в команде!"
+		"ua"		"Ви повинні бути в команді!"
+	}
+
+	"YOU_MUST_BE_DEAD"
+	{
+		"en"		"You must be dead!"
+		"ru"		"Вы должны быть мертвы!"
+		"ua"		"Ви повинні бути мертві!"
+	}
+
+	"REACHED_ROUND_LIMIT"
+	{
+		"en"		"The usage limit for the round is reached!"
+		"ru"		"Достигнут лимит использований за раунд!"
+		"ua"		"Досягнуто ліміт використань за раунд!"
+	}
+
+	"REACHED_MAP_LIMIT"
+	{
+		"en"		"The usage limit for the map is reached!"
+		"ru"		"Достигнут лимит использований за карту!"
+		"ua"		"Досягнуто ліміт використань за карту!"
+	}
+
+	"NOT_ENOUGH_ALIVE_PLAYERS"
+	{
+		"en"		"Not enough alive players!"
+		"ru"		"Недостаточно живых игроков!"
+		"ua"		"Недостатньо живих гравців!"
+	}
+
+	"AUTORESPAWN_NOTIFY"
+	{
+		"en"		"Automatic respawn ..."
+		"ru"		"Автоматическое возрождение ..."
+		"ua"		"Автоматичне відродження ..."
+	}
+}
