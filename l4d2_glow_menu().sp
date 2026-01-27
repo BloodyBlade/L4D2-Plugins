@@ -72,7 +72,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 public Plugin myinfo = 
 {
 	name = "[L4D2] Glow Survivor", 
-	author = "King_OXO && valedar(rework and fix)", 
+	author = "King_OXO && valedar(rework and fix) && BloodyBlade(Edited)", 
 	description = "", 
 	version = PLUGIN_VERSION, 
 	url = "https://forums.alliedmods.net/showthread.php?t=332956"
@@ -354,3 +354,4 @@ stock bool IsValidAliveSurv(int client)
 {
 	return IsValidClient(client) && GetClientTeam(client) == 2 && IsPlayerAlive(client);
 }
+
