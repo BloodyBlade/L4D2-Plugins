@@ -1,0 +1,18 @@
+"Phrases"
+{
+    "WitchFinallyKilledBy"
+    {
+        "ru"        "Ведьму окончательно убил %N!"
+        "en"        "Witch finally killed by %N!"
+    }
+    "TankFinallyKilledBy"
+    {
+        "ru"        "Танка окончательно убил %N!"
+        "en"        "Tank finally killed by %N!"
+    }
+    "HP"
+    {
+        "ru"        "[HR] +%i HP"
+        "en"        "[HR] +%i HP"
+    }
+}
