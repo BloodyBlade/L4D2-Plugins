@@ -854,8 +854,8 @@ Action Timer_TryTeamPlacement(Handle timer)
 */
 void TryTeamPlacement()
 {
-	SetConVarInt(FindConVar("sb_all_bot_game"), 1); // necessary to avoid 0 human Survivor server bugs
-	SetConVarInt(FindConVar("allow_all_bot_survivor_team"), 1);
+	FindConVar("sb_all_bot_game").SetInt(1); // necessary to avoid 0 human Survivor server bugs
+	FindConVar("allow_all_bot_survivor_team").SetInt(1);
 
 	/*
 	* Calculate how many free slots a team has
@@ -2018,5 +2018,6 @@ bool IsFirstMap()
 	return !IsServerProcessing() || (GetFeatureStatus(FeatureType_Native, "L4D_IsFirstMapInScenario") == FeatureStatus_Available && L4D_IsFirstMapInScenario());
 }
 /**/
+
 
 
