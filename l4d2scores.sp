@@ -80,7 +80,7 @@ bool pendingNewMission;
 char nextMap[128];
 
 /* Team Placement */
-Handle teamPlacementTrie = null; //remember what teams to place after map change
+StringMap teamPlacementTrie = null; //remember what teams to place after map change
 int teamPlacementArray[256];  //after client connects, try to place him to this team
 int teamPlacementAttempts[256]; //how many times we attempt and fail to place a person
 
@@ -145,7 +145,7 @@ public void OnPluginStart()
 	/*
 	* ADT Handles
 	*/
-	teamPlacementTrie = CreateTrie();
+	teamPlacementTrie = new StringMap();
 	if(teamPlacementTrie == null)
 	{
 		LogError("Could not create the team placement trie! FATAL ERROR");
@@ -407,8 +407,8 @@ Action Command_Swap(int client, int args)
 
 		char authid[128], team;
 		GetClientAuthId(player_id, AuthId_Steam2, authid, sizeof(authid));
-		if(GetTrieValue(teamPlacementTrie, authid, team))
-			RemoveFromTrie(teamPlacementTrie, authid);
+		if(teamPlacementTrie.GetValue(authid, team))
+			teamPlacementTrie.Remove(authid);
 
 		team = GetOppositeClientTeam(player_id);
 		teamPlacementArray[player_id] = team;
@@ -432,11 +432,11 @@ Action Command_SwapTo(int client, int args)
 	GetCmdArg(args, teamStr, sizeof(teamStr));
 	int team = StringToInt(teamStr);
 
-    if (team < 1 || team > 3)
-    {
-        ReplyToCommand(client, "[SM] Invalid team %s specified, needs to be 1, 2, or 3", teamStr);
-        return Plugin_Handled;
-    }
+	if(!team)
+	{
+		ReplyToCommand(client, "[SM] Invalid team %s specified, needs to be 1, 2, or 3", teamStr);
+		return Plugin_Handled;
+	}
 
 	char player[64];
 
@@ -450,8 +450,8 @@ Action Command_SwapTo(int client, int args)
 
 		char authid[128];
 		GetClientAuthId(player_id, AuthId_Steam2, authid, sizeof(authid));
-		if(GetTrieValue(teamPlacementTrie, authid, team))
-			RemoveFromTrie(teamPlacementTrie, authid);
+		if(teamPlacementTrie.GetValue(authid, team))
+			teamPlacementTrie.Remove(authid);
 
 		team = StringToInt(teamStr);
 		teamPlacementArray[player_id] = team;
@@ -738,7 +738,7 @@ void CalculateNextMapTeamPlacement()
 			team = GetClientTeamForNextMap(i, pendingSwapScores, bAreTeamsFlipped);
 
 			DebugPrintToAll("Next map will place %N, now %d, to %d", i, GetClientTeam(i), team);
-			SetTrieValue(teamPlacementTrie, authid, team);
+			teamPlacementTrie.SetValue(authid, team);
 		}
 	}
 }
@@ -762,10 +762,10 @@ Action Event_PlayerTeam(Event event, const char[] name, bool dontBroadcast)
 	int team; char authid[256];
 	GetClientAuthId(client, AuthId_Steam2, authid, sizeof(authid));
 
-	if(GetTrieValue(teamPlacementTrie, authid, team))
+	if(teamPlacementTrie.GetValue(authid, team))
 	{
 		teamPlacementArray[client] = team;
-		RemoveFromTrie(teamPlacementTrie, authid);
+		teamPlacementTrie.Remove(authid);
 		DebugPrintToAll("Team Event: Put %N to team %d as Trie commands", client, team);
 	}
 
@@ -803,7 +803,7 @@ Action IsNobodyConnected(Handle timer, any timerDisconnectTime)
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (IsClientConnected(i) && !IsFakeClient(i))
-			return  Plugin_Stop;
+			return Plugin_Stop;
 	}
 
 	OnNewMission();
@@ -977,7 +977,7 @@ void ClearTeamPlacement()
 		teamPlacementAttempts[i] = 0;
 	}
 
-	ClearTrie(teamPlacementTrie);
+	teamPlacementTrie.Clear();
 }
 
 
@@ -1709,7 +1709,7 @@ public Action Command_SwapNext(client, args)
 			team = GetOppositeClientTeam(i);
 
 			DebugPrintToAll("Next map will place %N to %d", i, team);
-			SetTrieValue(teamPlacementTrie, authid, team);
+			teamPlacementTrie.SetValue(authid, team);
 		}
 	}
 
@@ -2018,6 +2018,3 @@ bool IsFirstMap()
 	return !IsServerProcessing() || (GetFeatureStatus(FeatureType_Native, "L4D_IsFirstMapInScenario") == FeatureStatus_Available && L4D_IsFirstMapInScenario());
 }
 /**/
-
-
-
