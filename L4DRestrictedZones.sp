@@ -15,7 +15,7 @@ int ig_protec = 1, ig_tick = 0, ig_timer = 10, ig_lines = 0, ig_deleteAllCount =
 public Plugin myinfo = 
 {
 	name = "L4D Restricted Zones",
-	author = "SkyDavid & TY",
+	author = "SkyDavid & TY(Edit. by BloodyBlade)",
 	description = "This plugins allows you to restrict specific L4D zones",
 	version = PLUGIN_VERSION,
 	url = "www.sky.zebgames.com"
@@ -517,3 +517,4 @@ stock Action TyTimerUpdate(Handle timer)
 		return Plugin_Continue;
 	}
 }
+
