@@ -62,7 +62,7 @@ void IsAllowed()
 
 stock bool CheckPermissions(int client)
 {
-	return client > 0 && client <= MaxClients && IsClientConnected(client) && IsClientInGame(client) && IsFakeClient(client);
+	return client > 0 && client <= MaxClients && IsClientConnected(client) && IsClientInGame(client) && !IsFakeClient(client);
 }
 
 Action CmdDeleteAll(int client, int args)
@@ -517,4 +517,5 @@ stock Action TyTimerUpdate(Handle timer)
 		return Plugin_Continue;
 	}
 }
+
 
