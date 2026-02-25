@@ -1128,30 +1128,28 @@ stock int OppositeCurrentTeam(int team)
 		return L4D_TEAM_INFECTED;
 	else if(team == L4D_TEAM_SPECTATE)
 		return L4D_TEAM_SPECTATE;
-
 	else
-	return -1;
+		return -1;
 }
 
 stock void ChangePlayerTeamDelayed(int client, int team)
 {
-	Handle pack;
-
+	DataPack pack;
 	CreateDataTimer(SCORE_DELAY_TEAM_SWITCH, Timer_ChangePlayerTeam, pack);
-
-	WritePackCell(pack, client);
-	WritePackCell(pack, team);
+	pack.WriteCell(client);
+	pack.WriteCell(team);
 }
 
-Action Timer_ChangePlayerTeam(Handle timer, Handle pack)
+Action Timer_ChangePlayerTeam(Handle timer, DataPack hPack)
 {
-	ResetPack(pack);
-
-	int client = ReadPackCell(pack);
-	int team = ReadPackCell(pack);
-
-	ChangePlayerTeam(client, team);
-    return Plugin_Stop;
+	hPack.Reset();
+	int client = hPack.ReadCell();
+	int team = hPack.ReadCell();
+	if(client > 0 && IsClientInGame(client))
+	{
+		ChangePlayerTeam(client, team);
+	}
+	return Plugin_Stop;
 }
 
 stock bool ChangePlayerTeam(int client, int team)
