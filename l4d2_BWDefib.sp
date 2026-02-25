@@ -18,8 +18,7 @@ public Plugin myinfo =
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
-    EngineVersion engine = GetEngineVersion();
-    if (engine != Engine_Left4Dead2)
+    if (GetEngineVersion() != Engine_Left4Dead2)
     {
         strcopy(error, err_max, "Plugin only supports Left 4 Dead 2 game.");
         return APLRes_SilentFailure;
