@@ -1,0 +1,43 @@
+"Phrases"
+{
+	"CannotCall"
+	{
+		"ru" "{orange}[SM] {green}Вы не можете проголосовать против этого игрока!"
+		"en" "{orange}[SM] {green}You cannot call a votekick against this player!"
+	}
+	"AttemptToKick"
+	{
+		"#format" "{1:s}"
+		"ru" "{orange}[SM] {green}{1} {orange}предпринял попытку выгнать вас с сервера!"
+		"en" "{orange}[SM] {green}{1} {orange}has made an attempt to kick you from the server!"
+	}
+	"VoteCalled"
+	{
+		"#format" "{1:N},{2:s}"
+		"ru" "{orange}[VOTEGUARD] {green}{1} запустил {orange}{2} голосование!"
+		"en" "{orange}[VOTEGUARD] {green}{1} has called a {orange}{2} vote!"
+	}
+	"KickedForAbuse"
+	{
+		"#format" "{1:s}"
+		"ru" "{orange}[SM] {green}{1} был кикнут за злоупотребление голосованием."
+		"en" "{orange}[SM] {green}{1} was kicked for vote abuse."
+	}
+	"BannedForAbuse"
+	{
+		"#format" "{1:s}"
+		"ru" "{orange}[SM] {green}{1} был забанен за злоупотребление голосованием."
+		"en" "{orange}[SM] {green}{1} was banned %d minutes for vote abuse."
+	}
+	"HaveReachedMaxVotes"
+	{
+		"ru" "{orange}[SM] {green}Вы набрали максимальное количество голосований."
+		"en" "{orange}[SM] {green}You have reached the Max mount of vall votes."
+	}
+	"Blocked"
+	{
+		"#format" "{1:d}"
+		"ru" "{orange}[SM] {green}Вы должны подождать {orange}{1} секунд, прежде чем начать новое голосование."
+		"en" "\{orange}[SM] {green}You must wait {orange}{1} seconds before starting another Vote."
+	}
+}
