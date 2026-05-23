@@ -48,7 +48,7 @@ bool bHooked, bAdminsImmune, bAdvertise;
 public Plugin myinfo = 
 {
 	name = "L4D Vote Guard",
-	author = "Crimson",
+	author = "Crimson(Edit. by BloodyBlade)",
 	description = "Left 4 Dead Vote Features",
 	version = PLUGIN_VERSION,
 	url = "http://www.sourcemod.net/"
