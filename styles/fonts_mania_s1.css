@@ -1,0 +1,22 @@
+ .fontsmenu, .ipsType_veryLarge, .ipsType_large, .ipsType_pageTitle, .user-links, .ipsfocus-search, .ipsDataItem_lastPoster, .ipsWidget, .ipsType_richText{
+ font-family: 'Roboto Condensed', sans-serif !important;
+ }
+
+ body {font-family: 'Roboto Condensed', sans-serif !important;  } 
+ h1,h2,h3,h4,h5,h6{font-family: 'Roboto Condensed', sans-serif !important;} 
+ p {font-family: 'Roboto Condensed', sans-serif !important;} 
+
+a{
+font-family: 'Roboto Condensed', sans-serif !important;
+font-size: 12px !important;        
+}
+
+td  {
+font-family: 'Roboto Condensed', sans-serif !important;
+font-size: 12px !important;        
+}
+
+
+div.fSmall a {
+font-family: 'Roboto Condensed', sans-serif !important;    
+}
