@@ -1,0 +1,230 @@
+body {
+  background: url(/public/style_images/bgte.jpg) !important;
+    background-size: 100% !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
+}
+
+.content{
+  background: #fff !important;
+    z-index: 0 !important; 
+
+
+    padding: 10px !important;
+    border-radius: 5px !important;
+    opacity: 2.97 !important;
+
+margin: 0 auto !important;
+	min-width: 990px !important;
+	max-width: 1300px !important;
+	width: 90% !important;
+}
+
+
+table.data-table td {
+    font-size: 11px !important;
+}
+
+table {
+     padding: 30px !important;   
+}
+
+.bg2 a:hover {
+ color: #000;
+ text-shadow: 0 0 5px #ffffff, 0 0 10px #ffffff, 0 0 20px #ffffff, 0 0 4px #00ff00 !important;    
+}
+.bg1 a:hover {
+ color: #000;
+ text-shadow: 0 0 5px #ffffff, 0 0 10px #ffffff, 0 0 20px #ffffff, 0 0 4px #00ff00 !important;    
+}
+
+
+.headerblock {
+	background: #11191C !important;
+	border:0px !important;
+	height:86px !important;
+	width: 100% !important; 
+	position:relative !important;
+}
+
+
+/*— –€“‹ ¬¬≈–’*/
+.headerblock,.location,.location_under {
+display: none !important;
+}
+
+
+table {
+  color: #191418 !important;
+}
+
+
+
+.navbar {
+text-transform: uppercase !important;
+padding: 15px !important;
+background:  #fff !important;
+margin-top: 20px !important;
+border-radius: 5px !important; 
+margin-left:2.4% !important;
+margin-right:2.4% !important;
+}
+
+
+
+
+
+
+
+span.fHeading {
+    display: none !important;
+}
+
+
+/*TILT*/
+div2.content .block {
+  -webkit-transition: all 0.1s ease;
+     -moz-transition: all 0.1s ease;
+       -o-transition: all 0.1s ease;
+      -ms-transition: all 0.1s ease;
+          transition: all 0.1s ease;
+}
+ 
+div2.content .block:hover {
+transform: scale(1.004, 1.004);
+}
+
+
+
+
+
+
+ul.navbar img {
+    display:none !important;
+}
+
+ul.navbar li {
+    background: #201A1C !important;
+    
+    padding-top: 10px !important;
+    padding-right: 15px !important;
+    padding-left: 15px !important;
+    padding-bottom: 10px !important;
+    
+    margin: 1px !important;
+    
+    border-radius: 100px !important;
+    font-size: 14px !important;
+    
+}
+ul.navbar li:hover {
+    background: #201A1C !important;
+  color: #ffffff !important;
+ text-shadow: 0 0 5px #ffffff, 0 0 10px #ffffff, 0 0 20px #ffffff, 0 0 40px #ff0202, 0 0 80px #ff0202, 0 0 90px #ff0202, 0 0 100px #ff0202, 0 0 150px #ff0202 !important;
+   
+}
+
+ul.navbar a {
+    color:#fff !important;
+    
+}
+
+
+#main ul.subsection_tabs {
+ margin-top: 30px !important; 
+    margin-left:2.4% !important;
+margin-right:2.4% !important;
+}
+
+
+
+
+.data-table-row {
+   background-color: #191418 !important; 
+}
+
+
+
+.data-table {
+
+border:1px solid #2C3135 !important;
+	border-collapse: collapse !important; 
+	width: 100% !important;  
+}
+
+.data-table  td {
+	padding: 4px;
+border:1px solid !important;
+    border-color: rgba(32, 37, 41, 0.2) !important;
+	border-bottom: px !important;	 
+}
+.data-table  td:hover {
+border:1px solid !important;
+    border-color: rgba(32, 37, 41, 0.2) !important;
+	border-bottom: 1px !important;	 
+}
+	 
+.data-table-row {
+
+border:1px solid !important;
+    border-color: rgba(32, 37, 41, 0.2) !important;
+	border-bottom: 1px !important;	 
+	color:#FFFFFF !important;
+
+}
+
+.data-table-head  {
+	background-image:url() !important;
+	background-repeat: repeat-x !important;
+	background-color: #1C1719 !important;
+	border:0px solid ##1C1719 !important;
+	color:#fff !important;
+	vertical-align: bottom !important; 
+}
+
+.data-table-head a:link {
+	color:#fff !important;
+}
+
+.data-table-head a:active {
+	color:#FFFFFF !important;
+}
+
+.data-table-head a:visited {
+	color:#AEAEAE !important;
+}
+
+.data-table-head a:hover {
+	color:#AEAEAE !important;
+}
+
+
+
+div.fSmall a {
+  background: #2D3236 !important;
+    padding: 10px !important;
+    border-radius: 100px !important;
+    font-size: 14px !important; 
+    color:#fff !important;
+    
+}
+div.fSmall a:hover {
+    background: #609b5b !important;
+  color: #ffffff !important;
+ text-shadow: 0 0 5px #ffffff, 0 0 10px #ffffff, 0 0 20px #ffffff, 0 0 40px #00ff00, 0 0 80px #00ff00, 0 0 90px #00ff00, 0 0 100px #00ff00, 0 0 150px #00ff00 !important;
+   
+}
+
+
+
+
+#player_avatar img {
+   border-radius: 100px !important; 
+    border: 2px solid #60A35B !important;
+}
+
+#player_avatar img:hover {
+   border-radius: 100px !important; 
+    border: 2px solid #60A35B !important;
+    opacity: 0.5 !important;
+}
