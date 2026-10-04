@@ -68,24 +68,25 @@ public void OnClientPutInServer(int client)
 	}
 }
 
-Action say(int i, const char[] command, int argc) 
+stock Action say(int i, const char[] command, int argc) 
 {  
-    char csay[8];
-    GetCmdArgString(csay, sizeof(csay));
-    StripQuotes(csay);
-    TrimString(csay);
-
-    if(i > 0)
-    {
-        if ((strcmp(csay, "mute", false) == 0) || (strcmp(csay, "!mute", false) == 0))
-            GeneralSelfMuteMenu(i, 0);
-    	else if((strcmp(csay, "sm", false) == 0) || (strcmp(csay, "!sm", false) == 0))
-    		DisplayMuteMenu(i);
-    	else if((strcmp(csay, "unmute", false) == 0) || (strcmp(csay, "!unmute", false) == 0) || (strcmp(csay, "su", false) == 0) || (strcmp(csay, "!su", false) == 0))
-    		DisplayUnMuteMenu(i);
-    	else if ((strcmp(csay, "cm", false) == 0) || (strcmp(csay, "!cm", false) == 0))
-    		DisplayCheckMuteMenu(i);
-    }
+	char csay[8];
+	GetCmdArgString(csay, sizeof(csay));
+	StripQuotes(csay);
+	TrimString(csay);
+	
+	if(i > 0)
+	{
+		if ((strcmp(csay, "mute", false) == 0) || (strcmp(csay, "!mute", false) == 0))
+			GeneralSelfMuteMenu(i, 0);
+		else if((strcmp(csay, "sm", false) == 0) || (strcmp(csay, "!sm", false) == 0))
+			DisplayMuteMenu(i);
+		else if((strcmp(csay, "unmute", false) == 0) || (strcmp(csay, "!unmute", false) == 0) || (strcmp(csay, "su", false) == 0) || (strcmp(csay, "!su", false) == 0))
+			DisplayUnMuteMenu(i);
+		else if ((strcmp(csay, "cm", false) == 0) || (strcmp(csay, "!cm", false) == 0))
+			DisplayCheckMuteMenu(i);
+	}
+	return Plugin_Continue;
 }
 
 stock Action GeneralSelfMuteMenu(int client, int args)
@@ -100,13 +101,13 @@ stock Action GeneralSelfMuteMenu(int client, int args)
 	menu.AddItem("1", Value);
 	Format(Value, sizeof(Value), "%T", "Check_mute_players", client);
 	menu.AddItem("2", Value);
-
+	
 	menu.ExitBackButton = true;
-
 	menu.Display(client, 30);
+	return Plugin_Handled;
 }
 
-int MenuHandler_GeneralMuteMenu(Menu menu, MenuAction action, int client, int itemNum)
+stock int MenuHandler_GeneralMuteMenu(Menu menu, MenuAction action, int client, int itemNum)
 {
 	switch (action)
 	{
@@ -116,19 +117,20 @@ int MenuHandler_GeneralMuteMenu(Menu menu, MenuAction action, int client, int it
 		}
 		case MenuAction_Select:
 		{
-            switch (itemNum)
-            {
-    			case 0: DisplayMuteMenu(client);
-    			case 1: DisplayUnMuteMenu(client);
-    			case 2: DisplayCheckMuteMenu(client);
-            }
+			switch (itemNum)
+			{
+				case 0: DisplayMuteMenu(client);
+				case 1: DisplayUnMuteMenu(client);
+				case 2: DisplayCheckMuteMenu(client);
+			}
 		}
 	}
+	return 0;
 }
 
 //====================================================================================================
 
-Action selfMute(int client, int args)
+stock Action selfMute(int client, int args)
 {
 	if(client == 0)
 	{
@@ -164,7 +166,7 @@ Action selfMute(int client, int args)
 	return Plugin_Handled;
 }
 
-void DisplayMuteMenu(int client)
+stock void DisplayMuteMenu(int client)
 {
 	Menu menu = new Menu(MenuHandler_MuteMenu);
 	char DisplayMuteMenuTitle[32];
@@ -175,7 +177,7 @@ void DisplayMuteMenu(int client)
 	menu.Display(client, MENU_TIME_FOREVER);
 }
 
-int MenuHandler_MuteMenu(Menu menu, MenuAction action, int param1, int param2)
+stock int MenuHandler_MuteMenu(Menu menu, MenuAction action, int param1, int param2)
 {
 	switch (action)
 	{
@@ -195,7 +197,7 @@ int MenuHandler_MuteMenu(Menu menu, MenuAction action, int param1, int param2)
 	return 0;
 }
 
-void muteTargetedPlayer(int client, int target)
+stock void muteTargetedPlayer(int client, int target)
 {
 	SetListenOverride(client, target, Listen_No);
 	CPrintToChat(client, "%t", "[Self-Mute] You have self-muted: %N", target);
@@ -204,7 +206,7 @@ void muteTargetedPlayer(int client, int target)
 
 //====================================================================================================
 
-Action selfUnmute(int client, int args)
+stock Action selfUnmute(int client, int args)
 {
 	if(client == 0)
 	{
@@ -241,7 +243,7 @@ Action selfUnmute(int client, int args)
 	return Plugin_Handled;
 }
 
-void DisplayUnMuteMenu(int client)
+stock void DisplayUnMuteMenu(int client)
 {
 	Menu menu = new Menu(MenuHandler_UnMuteMenu);
 	char DisplayUnMuteMenuTitle[32];
@@ -252,7 +254,7 @@ void DisplayUnMuteMenu(int client)
 	menu.Display(client, MENU_TIME_FOREVER);
 }
 
-int MenuHandler_UnMuteMenu(Menu menu, MenuAction action, int param1, int param2)
+stock int MenuHandler_UnMuteMenu(Menu menu, MenuAction action, int param1, int param2)
 {
 	switch (action)
 	{
@@ -272,7 +274,7 @@ int MenuHandler_UnMuteMenu(Menu menu, MenuAction action, int param1, int param2)
 	return 0;
 }
 
-void unMuteTargetedPlayer(int client, int target)
+stock void unMuteTargetedPlayer(int client, int target)
 {
 	SetListenOverride(client, target, Listen_Default);
 	CPrintToChat(client, "%t", "[Self-Mute] You have self-unmuted: %N", target);
@@ -281,13 +283,13 @@ void unMuteTargetedPlayer(int client, int target)
 
 //====================================================================================================
 
-Action checkmute(int client, int args)
+stock Action checkmute(int client, int args)
 {
 	if (client) DisplayCheckMuteMenu(client);
 	return Plugin_Handled;
 }
 
-Action DisplayCheckMuteMenu(int client)
+stock Action DisplayCheckMuteMenu(int client)
 {
 	Panel CheckMutePanel = new Panel();
 	char nickNames[256];
@@ -319,6 +321,7 @@ Action DisplayCheckMuteMenu(int client)
 	return Plugin_Handled;
 }
 
-int MuteMenuHandler(Menu CheckMutePanel, MenuAction action, int client, int param2)
+stock int MuteMenuHandler(Menu CheckMutePanel, MenuAction action, int client, int param2)
 {
+	return 0;
 }
