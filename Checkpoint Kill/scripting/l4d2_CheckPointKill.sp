@@ -7,12 +7,12 @@
 ConVar IsMapFinished;
 Handle DeathTimer;
 char current_map[64];
-bool FalsePositive[MAXPLAYERS + 1]/*, Activated*/;
+bool FalsePositive[MAXPLAYERS + 1];
 
 public Plugin myinfo =
 {
 	name = "L4D2 Checkpoint Kill",
-	author = "Accelerator",
+	author = "Accelerator(Edit. by BloodyBlade)",
 	description = "",
 	version = "1.0",
 	url = "https://core-ss.org"
@@ -23,8 +23,7 @@ public void OnPluginStart()
 	LoadTranslations("Checkpoint_Kill.phrases");
 
 	HookEvent("player_entered_checkpoint", Event_CheckPoint, EventHookMode_PostNoCopy);
-//	HookEvent("finale_vehicle_ready", Escape, EventHookMode_PostNoCopy);
-//	HookEvent("finale_escape_start", Escape, EventHookMode_PostNoCopy);
+	HookEvent("finale_vehicle_incoming", Escape, EventHookMode_PostNoCopy);
 	HookEvent("round_start", Start, EventHookMode_PostNoCopy);
 	HookEvent("round_end", End, EventHookMode_PostNoCopy);
 	HookEvent("mission_lost", End, EventHookMode_PostNoCopy);
@@ -42,45 +41,49 @@ public void OnMapStart()
 
 public void OnMapEnd()
 {
-	if (DeathTimer) delete DeathTimer;
-/*	Activated = false;*/
+	if (DeathTimer != null)
+	{
+		delete DeathTimer;
+	}
+	
 	for(int i = 1; i <= MaxClients; i++)
 	{
 		FalsePositive[i] = true;
 	}
 }
 
-public void Start(Event event, const char[] name, bool dontBroadcast)
+stock void Start(Event event, const char[] name, bool dontBroadcast)
 {
 	IsMapFinished.SetInt(0);
 }
 
-public void End(Event event, const char[] name, bool dontBroadcast)
+stock void End(Event event, const char[] name, bool dontBroadcast)
 {
 	OnMapEnd();
 }
 
-/*public Action Escape(Event event, const char[] name, bool dontBroadcast)
+stock void Escape(Event event, const char[] name, bool dontBroadcast)
 {
-	if (IsMapFinished.IntValue > 0) return Plugin_Continue;
-
+	if (IsMapFinished.BoolValue)
+	{
+		return;
+	}
+	
 	int player = GetClientOfUserId(event.GetInt("userid"));
 	if (IsPlayerSurvivor(player) && !IsFakeClient(player))
 	{
 		CheckPointReached();
 		CPrintToChatAll("%t", "The final vehicle is ready. \nMode: Sudden death activated.");
-		return Plugin_Handled;
+		return;
 	}
-
-	return Plugin_Continue;
-}*/
-
-void CheckPointReached()
-{
-	IsMapFinished.SetInt(1);
 }
 
-public void IsMapFinishedChanged(ConVar hVariable, const char[] strOldValue, const char[] strNewValue)
+stock void CheckPointReached()
+{
+	IsMapFinished.SetInt(1, false, false);
+}
+
+stock void IsMapFinishedChanged(ConVar hVariable, const char[] strOldValue, const char[] strNewValue)
 {
 	if (StringToInt(strNewValue) > 0)
 	{
@@ -88,42 +91,48 @@ public void IsMapFinishedChanged(ConVar hVariable, const char[] strOldValue, con
 	}
 }
 
-public Action TimerActivate(Handle timer)
+stock Action TimerActivate(Handle timer)
 {
-//	if(Activated)
-//	{
-	CPrintToChatAll("%t", "Mode: Sudden death is activated!");
-//		Activated = false;
-//	}
-
-	if (DeathTimer) delete DeathTimer;
+	if (DeathTimer != null)
+	{
+		delete DeathTimer;
+	}
 	DeathTimer = CreateTimer(1.0, TimerDeath, _, TIMER_REPEAT);
+	return Plugin_Stop;
 }
 
-public Action TimerDeath(Handle timer)
+stock Action TimerDeath(Handle timer)
 {
 	for (int i = 1; i <= MaxClients; i++)
 	{			
 		if (IsPlayerSurvivor(i) && (IsPlayerIncapped(i) || IsPlayerLedgeGrab(i)))
+		{
 			ForcePlayerSuicide(i);
+		}
 	}
-
+	
 	return Plugin_Continue;
 }
 
-public Action Event_CheckPoint(Event event, const char[] name, bool dontBroadcast)
+stock Action Event_CheckPoint(Event event, const char[] name, bool dontBroadcast)
 {
-	if (IsMapFinished.IntValue > 0) return Plugin_Continue;
-
+	if (IsMapFinished.BoolValue)
+	{
+		return Plugin_Continue;
+	}
+	
 	int Door = event.GetInt("door");
-
-	if (Door && GetEntProp(Door, Prop_Data, "m_hasUnlockSequence")) return Plugin_Continue;
-
+	
+	if (Door && GetEntProp(Door, Prop_Data, "m_hasUnlockSequence"))
+	{
+		return Plugin_Continue;
+	}
+	
 	int Target = GetClientOfUserId(event.GetInt("userid"));
-
+	
 	char strBuffer[64];
 	event.GetString("doorname", strBuffer, sizeof(strBuffer));
-
+	
 	if (IsPlayerSurvivor(Target) && !IsFakeClient(Target))
 	{
 		if (StrEqual(strBuffer, "checkpoint_entrance", false))
@@ -134,7 +143,7 @@ public Action Event_CheckPoint(Event event, const char[] name, bool dontBroadcas
 		else
 		{
 			int area = event.GetInt("area");
-
+	
 			if (StrEqual(current_map, "c2m1_highway", false))
 			{
 				if (area == 89583) CheckPointReached();
@@ -197,29 +206,26 @@ public Action Event_CheckPoint(Event event, const char[] name, bool dontBroadcas
 				FalsePositive[Target] = false;
 			}
 		}
-
+	
 		if (!FalsePositive[Target])
 		{
 			CPrintToChatAll("%t", "Player %N has entered the safe zone. \nMode: Sudden death is activated after 10 seconds.", Target);
 			FalsePositive[Target] = true;
-/*			Activated = true;*/
 		}
 		return Plugin_Handled;
 	}
-
+	
 	return Plugin_Continue;
 }
 
 stock bool IsPlayerIncapped(int client)
 {
-	if (GetEntProp(client, Prop_Send, "m_isIncapacitated", 1)) return true;
-	return false;
+	return view_as<bool>(GetEntProp(client, Prop_Send, "m_isIncapacitated"));
 }
 
 stock bool IsPlayerLedgeGrab(int client)
 {
-	if (GetEntProp(client, Prop_Send, "m_isHangingFromLedge", 1)) return true;
-	return false;
+	return view_as<bool>(GetEntProp(client, Prop_Send, "m_isHangingFromLedge"));
 }
 
 stock bool IsPlayerSurvivor(int client)
