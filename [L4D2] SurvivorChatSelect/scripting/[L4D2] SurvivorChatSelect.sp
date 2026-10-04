@@ -53,14 +53,15 @@ ConVar convarZoey, convarSpawn, convarAdminsOnly, convarCookies;
 #define     FRANCIS     6
 #define     LOUIS     	7
 
-int    g_iSelectedClient[MAXPLAYERS + 1] = {0, ...};
+int   g_iSelectedClient[MAXPLAYERS + 1];
+float fGameTime[MAXPLAYERS + 1], fChangeTime[MAXPLAYERS + 1];
 static Cookie g_hClientID, g_hClientModel;
 GlobalForward g_hForwardOnCharSelected;
 
 public Plugin myinfo =  
 {  
 	name = PLUGIN_NAME,  
-	author = "DeatChaos25, Mi123456 & Merudo",  
+	author = "DeatChaos25, Mi123456 & Merudo(Edit by BloodyBlade)",  
 	description = "Select a survivor character by typing their name into the chat.",  
 	version = PLUGIN_VERSION,
 	url = "https://forums.alliedmods.net/showthread.php?p=2399163#post2399163"
@@ -68,7 +69,7 @@ public Plugin myinfo =
 
 public void OnPluginStart()  
 {
-	g_hForwardOnCharSelected = CreateGlobalForward("L4D2_OnCharSelected", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
+	g_hForwardOnCharSelected = CreateGlobalForward("L4D2_OnCharSelected", ET_Ignore, Param_Cell);
 	g_hClientID 	= new Cookie("Player_Character", "Player's default character ID.", CookieAccess_Protected);
 	g_hClientModel  = new Cookie("Player_Model", "Player's default character model.", CookieAccess_Protected);
 
@@ -97,6 +98,7 @@ public void OnPluginStart()
 	HookEvent("player_spawn", Event_PlayerSpawn, EventHookMode_Post);
 	HookEvent("player_bot_replace", Event_PlayerToBot, EventHookMode_Post);
 
+
 	convarAdminsOnly = CreateConVar("l4d_csm_admins_only", "0","Changes access to the sm_csm command. 1 = Admin access only.", FCVAR_NOTIFY, true, 0.0, true, 1.0);		
 	convarZoey 		 = CreateConVar("l4d_scs_zoey", "1", "Prop for Zoey. 0: Rochelle (windows), 1: Zoey (linux), 2: Nick (fakezoey)", FCVAR_NOTIFY, true, 0.0, true, 2.0);
 	convarSpawn		 = CreateConVar("l4d_scs_botschange", "0", "Change new bots to least prevalent survivor? 1:Enable, 0:Disable", FCVAR_NOTIFY, true, 0.0, true, 1.0);
@@ -117,64 +119,72 @@ public void OnPluginStart()
 // Character Select functions
 // *********************************************************************************	
 
-int GetZoeyProp()
+stock int GetZoeyProp()
 {
 	if 		(convarZoey.IntValue == 2) return NICK;			// For use with fakezoey for windows
 	else if (convarZoey.IntValue == 1) return ZOEY;			// Linux only, or crashes the game
 	else							   return ROCHELLE;		// For windows without fakezoey
 }
 
-Action ZoeyUse(int client, int args)  
+stock Action ZoeyUse(int client, int args)  
 {  
 	if(!Capped(client)) SurvivorChange(client, GetZoeyProp(), MODEL_ZOEY, "Zoey");
 	return Plugin_Handled;
 }
 
-Action NickUse(int client, int args)  
+stock Action NickUse(int client, int args)  
 {
 	if(!Capped(client)) SurvivorChange(client, NICK, MODEL_NICK, "Nick");
 	return Plugin_Handled;
 }
 
-Action EllisUse(int client, int args)  
+stock Action EllisUse(int client, int args)  
 {
 	if(!Capped(client)) SurvivorChange(client, ELLIS, MODEL_ELLIS, "Ellis");
 	return Plugin_Handled;
 }
 
-Action CoachUse(int client, int args)  
+stock Action CoachUse(int client, int args)  
 {
 	if(!Capped(client)) SurvivorChange(client, COACH, MODEL_COACH, "Coach");
 	return Plugin_Handled;
 }
 
-Action RochelleUse(int client, int args)  
+stock Action RochelleUse(int client, int args)  
 {  
 	if(!Capped(client)) SurvivorChange(client, ROCHELLE, MODEL_ROCHELLE, "Rochelle");
 	return Plugin_Handled;
 }
 
-Action BillUse(int client, int args)  
+stock Action BillUse(int client, int args)  
 {  
 	if(!Capped(client)) SurvivorChange(client, BILL, MODEL_BILL, "Bill");
 	return Plugin_Handled;
 }
 
-Action BikerUse(int client, int args)  
+stock Action BikerUse(int client, int args)  
 {  
 	if(!Capped(client)) SurvivorChange(client, FRANCIS, MODEL_FRANCIS, "Francis");
 	return Plugin_Handled;
 }
 
-Action LouisUse(int client, int args)  
+stock Action LouisUse(int client, int args)  
 {  
 	if(!Capped(client)) SurvivorChange(client, LOUIS, MODEL_LOUIS, "Louis");
 	return Plugin_Handled;
 }
 
 // Function changes the survivor
-void SurvivorChange(int client, int prop, char[] model,  char[] name, bool save = true)
+stock void SurvivorChange(int client, int prop, char[] model,  char[] name, bool save = true)
 {
+	fGameTime[client] = GetGameTime();
+	if(fChangeTime[client] > fGameTime[client])
+	{
+		return;
+	}
+
+	fChangeTime[client] = fGameTime[client] + 1.5;
+
 	if(client < 1 || client > MaxClients || !IsClientInGame(client) || GetClientTeam(client) != 2)
 	{
 		CPrintToChat(client, "%t", "YouMustBeInSurvivor");
@@ -190,7 +200,7 @@ void SurvivorChange(int client, int prop, char[] model,  char[] name, bool save 
 	SetEntityModel(client, model);
 	ReEquipWeapons(client);
 
-	if (convarCookies && save)
+	if (convarCookies.BoolValue && save)
 	{
 		char sprop[2]; IntToString(prop, sprop, 2);
 		g_hClientID.Set(client, sprop);
@@ -218,7 +228,7 @@ public void OnMapStart()
 // *********************************************************************************	
 
 /* This Admin Menu was taken from csm, all credits go to Mi123645 */ 
-Action InitiateMenuAdmin(int client, int args)  
+stock Action InitiateMenuAdmin(int client, int args)  
 {
 	if (client == 0)  
 	{ 
@@ -247,7 +257,7 @@ Action InitiateMenuAdmin(int client, int args)
 	return Plugin_Handled;
 }
 
-int ShowMenu2(Menu menu, MenuAction action, int client, int param2)  
+stock int ShowMenu2(Menu menu, MenuAction action, int client, int param2)  
 {
 	switch (action)  
 	{
@@ -273,7 +283,7 @@ int ShowMenu2(Menu menu, MenuAction action, int client, int param2)
 	return 0;
 }
 
-Action ShowMenuAdmin(int client, int args)  
+stock Action ShowMenuAdmin(int client, int args)  
 {
 	if(client > 0 && args < 1)
 	{
@@ -307,7 +317,7 @@ Action ShowMenuAdmin(int client, int args)
 	return Plugin_Handled;
 }
 
-int CharMenuAdmin(Menu menu, MenuAction action, int client, int param2)  
+stock int CharMenuAdmin(Menu menu, MenuAction action, int client, int param2)  
 {
 	switch (action)
 	{
@@ -327,14 +337,16 @@ int CharMenuAdmin(Menu menu, MenuAction action, int client, int param2)
 				case FRANCIS: SurvivorChange(g_iSelectedClient[client],       FRANCIS, MODEL_FRANCIS, "Francis", false);
 				case LOUIS: SurvivorChange(g_iSelectedClient[client],         LOUIS, MODEL_LOUIS,   "Louis", false);
 			} 
-		} 
-		case MenuAction_Cancel: {}
-		case MenuAction_End: delete menu; 
+		}
+		case MenuAction_End:
+		{
+			delete menu;
+		}
 	}
 	return 0;
 }
 
-Action ShowMenu(int client, int args) 
+stock Action ShowMenu(int client, int args) 
 {
 	if (client == 0) 
 	{
@@ -385,7 +397,7 @@ Action ShowMenu(int client, int args)
 	return Plugin_Handled;
 }
 
-int CharMenu(Menu menu, MenuAction action, int param1, int param2) 
+stock int CharMenu(Menu menu, MenuAction action, int param1, int param2) 
 {
 	switch (action) 
 	{
@@ -405,9 +417,6 @@ int CharMenu(Menu menu, MenuAction action, int param1, int param2)
 				case FRANCIS: BikerUse(param1, FRANCIS);
 				case LOUIS: LouisUse(param1, LOUIS);
 			}
-		}
-		case MenuAction_Cancel:
-		{
 		}
 		case MenuAction_End: 
 		{
@@ -444,7 +453,7 @@ public void OnAdminMenuReady(Handle aTopMenu)
 	}
 }
 
-void InitiateMenuAdmin2(TopMenu topmenu, TopMenuAction action, TopMenuObject object_id, int client, char[] buffer, int maxlength)
+stock void InitiateMenuAdmin2(TopMenu topmenu, TopMenuAction action, TopMenuObject object_id, int client, char[] buffer, int maxlength)
 {
 	if (action == TopMenuAction_DisplayOption)
 	{
@@ -460,17 +469,16 @@ void InitiateMenuAdmin2(TopMenu topmenu, TopMenuAction action, TopMenuObject obj
 // Cookie loading
 // *********************************************************************************
 
-Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
+stock void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	if(client > 0 && IsClientInGame(client) && !IsFakeClient(client) && GetClientTeam(client) == 2 && convarCookies)
 	{
 		CreateTimer(0.3, Timer_LoadCookie, GetClientUserId(client));
 	}
-	return Plugin_Continue;
 }
 
-Action Timer_LoadCookie(Handle timer, int userid)
+stock Action Timer_LoadCookie(Handle timer, int userid)
 {
 	int client = GetClientOfUserId(userid);
 	char sID[2], sModel[64];
@@ -503,19 +511,19 @@ Action Timer_LoadCookie(Handle timer, int userid)
 char survivor_models[8][] = { MODEL_NICK, MODEL_ROCHELLE, MODEL_COACH, MODEL_ELLIS, MODEL_BILL,	MODEL_ZOEY,	MODEL_FRANCIS, MODEL_LOUIS };
 char survivor_commands[8][] = { "sm_nick", "sm_rochelle", "sm_coach", "sm_ellis", "sm_bill", "sm_zoey", "sm_francis", "sm_louis"};
 
-Action Event_PlayerToBot(Event event, char[] name, bool dontBroadcast)
+stock Action Event_PlayerToBot(Event event, char[] name, bool dontBroadcast)
 {
 	int player = GetClientOfUserId(event.GetInt("player")), bot = GetClientOfUserId(event.GetInt("bot")); 
 
 	// If bot replace bot (due to bot creation)
-	if(player > 0 && GetClientTeam(player) == 2  && IsFakeClient(player) && convarSpawn.BoolValue) 
+	if(player > 0 && GetClientTeam(player) == 2  && IsFakeClient(player) && convarSpawn.BoolValue)
 	{
 		FakeClientCommand(bot, survivor_commands[GetFewestSurvivor(bot)]);
 	}
 	return Plugin_Continue;
 }
 
-int GetFewestSurvivor(int clientignore = -1) 
+stock int GetFewestSurvivor(int clientignore = -1) 
 {
 	char Model[128];
 	int Survivors[8];
@@ -527,7 +535,7 @@ int GetFewestSurvivor(int clientignore = -1)
 			GetClientModel(client, Model, 128);
 			for (int s = 0; s < 8; s++)
 			{
-				if (StrEqual(Model, survivor_models[s])) Survivors[s] = Survivors[s] + 1;
+				if (StrEqual(Model, survivor_models[s], false)) Survivors[s] = Survivors[s] + 1;
 			}
 		}
 	}
@@ -549,40 +557,57 @@ int GetFewestSurvivor(int clientignore = -1)
 // Save weapon details, remove weapon, create new weapons with exact same properties
 // Needed otherwise there will be animation bugs after switching characters due to different weapon mount points
 // ------------------------------------------------------------------
-void ReEquipWeapons(int client)
+stock void ReEquipWeapons(int client)
 {
 	int i_Weapon = GetEntDataEnt2(client, FindSendPropInfo("CBasePlayer", "m_hActiveWeapon"));
-	
 	// Don't bother with the weapon fix if dead or unarmed
 	if (!IsPlayerAlive(client) || !IsValidEdict(i_Weapon) || !IsValidEntity(i_Weapon))
 		return;
+
+	Call_StartForward(g_hForwardOnCharSelected);
+	Call_PushCell(client);
+	Call_Finish();
 
 	int iSlot0 = GetPlayerWeaponSlot(client, 0), iSlot1 = GetPlayerWeaponSlot(client, 1), 
 		iSlot2 = GetPlayerWeaponSlot(client, 2), iSlot3 = GetPlayerWeaponSlot(client, 3), 
 		iSlot4 = GetPlayerWeaponSlot(client, 4);
 
 	char sWeapon[64];
-	GetClientWeapon(client, sWeapon, sizeof(sWeapon));
 
-	//  Protection against grenade duplication exploit (throwing grenade then quickly changing character)
-	if (iSlot2 > 0 && strcmp(sWeapon, "weapon_vomitjar", true) && strcmp(sWeapon, "weapon_pipe_bomb", true) && strcmp(sWeapon, "weapon_molotov", true ))
+	if (iSlot2 > 0)
 	{
 		GetEdictClassname(iSlot2, sWeapon, 64);
-		DeletePlayerSlot(client, iSlot2);
-		GivePlayerItem(client, sWeapon);
+		if(!StrEqual(sWeapon, "weapon_none", false))
+		{
+			if(DeletePlayerSlot(client, iSlot2))
+			{
+				GivePlayerItem(client, sWeapon);
+			}
+		}
 	}
 	if (iSlot3 > 0)
 	{
 		GetEdictClassname(iSlot3, sWeapon, 64);
-		DeletePlayerSlot(client, iSlot3);
-		GivePlayerItem(client, sWeapon);
+		if(!StrEqual(sWeapon, "weapon_none", false))
+		{
+			if(DeletePlayerSlot(client, iSlot3))
+			{
+				GivePlayerItem(client, sWeapon);
+			}
+		}
 	}
 	if (iSlot4 > 0)
 	{
 		GetEdictClassname(iSlot4, sWeapon, 64);
-		DeletePlayerSlot(client, iSlot4);
-		GivePlayerItem(client, sWeapon);
+		if(!StrEqual(sWeapon, "weapon_none", false))
+		{
+			if(DeletePlayerSlot(client, iSlot4))
+			{
+				GivePlayerItem(client, sWeapon);
+			}
+		}
 	}
+
 	if (iSlot1 > 0) ReEquipSlot1(client, iSlot1);
 	if (iSlot0 > 0) ReEquipSlot0(client, iSlot0);
 }
@@ -590,35 +615,39 @@ void ReEquipWeapons(int client)
 // --------------------------------------
 // Extra work to save/load ammo details
 // --------------------------------------	
-void ReEquipSlot0(int client, int iSlot0)
+stock void ReEquipSlot0(int client, int iSlot0)
 {
-	Call_StartForward(g_hForwardOnCharSelected);
-	Call_PushCell(client);
-	Call_Finish();
-
 	int iClip,iAmmo, iUpgrade, iUpAmmo;
 	char sWeapon[64];
 
 	GetEdictClassname(iSlot0, sWeapon, 64);
+	if(!StrEqual(sWeapon, "weapon_none", false))
+	{
+		iClip = GetEntProp(iSlot0, Prop_Send, "m_iClip1", 4);
+		iAmmo = GetClientAmmo(client, sWeapon);
+		iUpgrade = GetEntProp(iSlot0, Prop_Send, "m_upgradeBitVec", 4);
+		iUpAmmo  = GetEntProp(iSlot0, Prop_Send, "m_nUpgradedPrimaryAmmoLoaded", 4);
 
-	iClip = GetEntProp(iSlot0, Prop_Send, "m_iClip1", 4);
-	iAmmo = GetClientAmmo(client, sWeapon);
-	iUpgrade = GetEntProp(iSlot0, Prop_Send, "m_upgradeBitVec", 4);
-	iUpAmmo  = GetEntProp(iSlot0, Prop_Send, "m_nUpgradedPrimaryAmmoLoaded", 4);
+		if(DeletePlayerSlot(client, iSlot0))
+		{
+			GivePlayerItem(client, sWeapon);
 
-	DeletePlayerSlot(client, iSlot0);
-	GivePlayerItem(client, sWeapon);
-
-	SetEntProp(iSlot0, Prop_Send, "m_iClip1", iClip, 4);
-	SetClientAmmo(client, sWeapon, iAmmo);
-	SetEntProp(iSlot0, Prop_Send, "m_upgradeBitVec", iUpgrade, 4);
-	SetEntProp(iSlot0, Prop_Send, "m_nUpgradedPrimaryAmmoLoaded", iUpAmmo, 4);
+			iSlot0 = GetPlayerWeaponSlot(client, 0);
+			if (iSlot0 > 0)
+			{
+				SetEntProp(iSlot0, Prop_Send, "m_iClip1", iClip, 4);
+				SetClientAmmo(client, sWeapon, iAmmo);
+				SetEntProp(iSlot0, Prop_Send, "m_upgradeBitVec", iUpgrade, 4);
+				SetEntProp(iSlot0, Prop_Send, "m_nUpgradedPrimaryAmmoLoaded", iUpAmmo, 4);
+			}
+		}
+	}
 }
 
 // --------------------------------------
 // Extra work to identify melee weapon, & save/load ammo details
 // --------------------------------------
-void ReEquipSlot1(int client, int iSlot1)
+stock void ReEquipSlot1(int client, int iSlot1)
 {
 	char className[64], modelName[64], sWeapon[64];
 	
@@ -628,8 +657,8 @@ void ReEquipSlot1(int client, int iSlot1)
 	GetEdictClassname(iSlot1, className, sizeof(className));
 
 	// Try to find weapon name without models
-	if 		(!strcmp(className, "weapon_melee", true))   GetEntPropString(iSlot1, Prop_Data, "m_strMapSetScriptName", sWeapon, 64);
-	else if (strcmp(className, "weapon_pistol", true))   GetEdictClassname(iSlot1, sWeapon, 64);
+	if 		(StrEqual(className, "weapon_melee", false))   GetEntPropString(iSlot1, Prop_Data, "m_strMapSetScriptName", sWeapon, 64);
+	else if (StrEqual(className, "weapon_pistol", false))  GetEdictClassname(iSlot1, sWeapon, 64);
 	
 	// IF model checking is required
 	if (sWeapon[0] == '\0')
@@ -663,94 +692,97 @@ void ReEquipSlot1(int client, int iSlot1)
 	if (sWeapon[0] != '\0')
 	{
 		// IF Weapon uses ammo, save it
-		if (!strcmp(sWeapon, "dual_pistol", true) 
-		||  !strcmp(sWeapon, "weapon_pistol", true)
-		||  !strcmp(sWeapon, "weapon_pistol_magnum", true) 
-		||  !strcmp(sWeapon, "weapon_chainsaw", true)
+		if (StrEqual(sWeapon, "dual_pistol", false) 
+		||  StrEqual(sWeapon, "weapon_pistol", false)
+		||  StrEqual(sWeapon, "weapon_pistol_magnum", false) 
+		||  StrEqual(sWeapon, "weapon_chainsaw", false)
 		)
 		{
 			Ammo = GetEntProp(iSlot1, Prop_Send, "m_iClip1", 4);
 		}	
 
-		DeletePlayerSlot(client, iSlot1);
+		if(DeletePlayerSlot(client, iSlot1))
+		{
+			// Reequip weapon (special code for dual pistols)
+			if (StrEqual(sWeapon, "dual_pistol", false))
+			{
+				GivePlayerItem(client, "weapon_pistol");
+				GivePlayerItem(client, "weapon_pistol");
+			}
+			else
+			{
+				GivePlayerItem(client, sWeapon);
+			}
 
-		// Reequip weapon (special code for dual pistols)
-		if (!strcmp(sWeapon, "dual_pistol", true))
-		{
-			GivePlayerItem(client, "weapon_pistol");
-			GivePlayerItem(client, "weapon_pistol");
-		}
-		else
-		{
-			GivePlayerItem(client, sWeapon);
-		}
-
-		// Restore ammo
-		if (Ammo >= 0)
-		{
-			iSlot = GetPlayerWeaponSlot(client, 1);
-			if (iSlot > 0) SetEntProp(iSlot, Prop_Send, "m_iClip1", Ammo, 4);
+			// Restore ammo
+			if (Ammo >= 0)
+			{
+				iSlot = GetPlayerWeaponSlot(client, 1);
+				if (iSlot > 0) SetEntProp(iSlot, Prop_Send, "m_iClip1", Ammo, 4);
+			}
 		}
 	}
 }
 
-void DeletePlayerSlot(int client, int weapon)
+stock bool DeletePlayerSlot(int client, int weapon)
 {		
 	if(RemovePlayerItem(client, weapon))
 	{
-		AcceptEntityInput(weapon, "Kill");
+		RemoveEntity(weapon);
+		return true;
 	}
+	return false;
 }
 
 // *********************************************************************************
 // Get/Set ammo
 // *********************************************************************************
 
-int GetClientAmmo(int client, char[] weapon)
+stock int GetClientAmmo(int client, char[] weapon)
 {
 	int weapon_offset = GetWeaponOffset(weapon), iAmmoOffset = FindSendPropInfo("CTerrorPlayer", "m_iAmmo");
 	return weapon_offset > 0 ? GetEntData(client, iAmmoOffset + weapon_offset) : 0;
 }
 
-void SetClientAmmo(int client, char[] weapon, int count)
+stock void SetClientAmmo(int client, char[] weapon, int count)
 {
 	int weapon_offset = GetWeaponOffset(weapon), iAmmoOffset = FindSendPropInfo("CTerrorPlayer", "m_iAmmo");
 	if (weapon_offset > 0) SetEntData(client, iAmmoOffset + weapon_offset, count);
 }
 
-int GetWeaponOffset(char[] weapon)
+stock int GetWeaponOffset(char[] weapon)
 {
 	int weapon_offset;
 
-	if (StrEqual(weapon, "weapon_rifle") || StrEqual(weapon, "weapon_rifle_sg552") || StrEqual(weapon, "weapon_rifle_desert") || StrEqual(weapon, "weapon_rifle_ak47"))
+	if (StrEqual(weapon, "weapon_rifle", false) || StrEqual(weapon, "weapon_rifle_sg552", false) || StrEqual(weapon, "weapon_rifle_desert", false) || StrEqual(weapon, "weapon_rifle_ak47", false))
 	{
 		weapon_offset = 12;
 	}
-	else if (StrEqual(weapon, "weapon_rifle_m60"))
+	else if (StrEqual(weapon, "weapon_rifle_m60", false))
 	{
 		weapon_offset = 24;
 	}
-	else if (StrEqual(weapon, "weapon_smg") || StrEqual(weapon, "weapon_smg_silenced") || StrEqual(weapon, "weapon_smg_mp5"))
+	else if (StrEqual(weapon, "weapon_smg", false) || StrEqual(weapon, "weapon_smg_silenced", false) || StrEqual(weapon, "weapon_smg_mp5", false))
 	{
 		weapon_offset = 20;
 	}
-	else if (StrEqual(weapon, "weapon_pumpshotgun") || StrEqual(weapon, "weapon_shotgun_chrome"))
+	else if (StrEqual(weapon, "weapon_pumpshotgun", false) || StrEqual(weapon, "weapon_shotgun_chrome", false))
 	{
 		weapon_offset = 28;
 	}
-	else if (StrEqual(weapon, "weapon_autoshotgun") || StrEqual(weapon, "weapon_shotgun_spas"))
+	else if (StrEqual(weapon, "weapon_autoshotgun", false) || StrEqual(weapon, "weapon_shotgun_spas", false))
 	{
 		weapon_offset = 32;
 	}
-	else if (StrEqual(weapon, "weapon_hunting_rifle"))
+	else if (StrEqual(weapon, "weapon_hunting_rifle", false))
 	{
 		weapon_offset = 36;
 	}
-	else if (StrEqual(weapon, "weapon_sniper_scout") || StrEqual(weapon, "weapon_sniper_military") || StrEqual(weapon, "weapon_sniper_awp"))
+	else if (StrEqual(weapon, "weapon_sniper_scout", false) || StrEqual(weapon, "weapon_sniper_military", false) || StrEqual(weapon, "weapon_sniper_awp", false))
 	{
 		weapon_offset = 40;
 	}
-	else if (StrEqual(weapon, "weapon_grenade_launcher"))
+	else if (StrEqual(weapon, "weapon_grenade_launcher", false))
 	{
 		weapon_offset = 68;
 	}
@@ -758,7 +790,7 @@ int GetWeaponOffset(char[] weapon)
 	return weapon_offset;
 }
 
-bool Capped(const int client)
+stock bool Capped(const int client)
 {
 	if(GetEntPropEnt(client, Prop_Send, "m_tongueOwner") > 0) return true; 
 	else if(GetEntPropEnt(client, Prop_Send, "m_carryAttacker" ) > 0) return true; 
