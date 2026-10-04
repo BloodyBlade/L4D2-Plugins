@@ -90,12 +90,14 @@ void IsAllowed()
 	if(!bHooked && bPluginOn && IsAllowedGameMode())
 	{
 		bHooked = true;
+		HookEvent("round_freeze_end", Event_OnRoundStart, EventHookMode_PostNoCopy);
 		HookEvent("round_start", Event_OnRoundStart, EventHookMode_PostNoCopy);
 		TimerCheck();
 	}
 	else if(bHooked && (!bPluginOn || !IsAllowedGameMode()))
 	{
 		bHooked = false;
+		UnhookEvent("round_freeze_end", Event_OnRoundStart, EventHookMode_PostNoCopy);
 		UnhookEvent("round_start", Event_OnRoundStart, EventHookMode_PostNoCopy);
 	}
 }
