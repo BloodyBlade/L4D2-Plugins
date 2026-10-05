@@ -1,0 +1,12 @@
+; ============================================
+; L4D2 VIP Weapon Restrict — Config
+; ============================================
+; One weapon per line.
+; Lines starting with ; or // are comments.
+; Classnames must match the game's weapon_ names.
+; ============================================
+
+weapon_grenade_launcher
+weapon_rifle_m60
+weapon_sniper_awp
+weapon_sniper_scout
