@@ -25,7 +25,7 @@ public Plugin myinfo =
 	author      = "BloodyBlade",
 	description = "Restricts VIP-only weapons in Versus (VIP Core optional, fallback to ADMFLAG_RESERVATION)",
 	version     = PLUGIN_VERSION,
-	url         = ""
+	url         = "https://bloodsiworld.ru"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max) 
