@@ -43,9 +43,9 @@ static const char g_sYellModels[12][] =
 
 bool   g_bHooked, g_bExBoomer, g_bExTank, g_bExCharger, g_bExSpitter, g_bExHunter, g_bExJockey, g_bExSmoker, g_bCvarSurvivor, g_bCvarInfected, g_bCvarDefault, g_bCvarBind, g_bCvarAdvert;
 bool   g_bPounced[MAXPLAYERS + 1], g_bChoked[MAXPLAYERS + 1], g_bRiden[MAXPLAYERS + 1], g_bPummel[MAXPLAYERS + 1], g_bIncap[MAXPLAYERS + 1], g_bCdown[MAXPLAYERS + 1], g_bYCdown[MAXPLAYERS + 1];
-bool   g_bCvarPounced, g_bCvarChoked, g_bCvarRiden, g_bCvarPummel, g_bCvarIncap, g_bCvarBurn, g_bOldButtons[MAXPLAYERS + 1];
+bool   g_bCvarPounced, g_bCvarChoked, g_bCvarRiden, g_bCvarPummel, g_bCvarIncap, g_bCvarBurn;
 float  g_fCvarRadius, g_fCvarPower, g_fCvarInterval, g_fCvarCooldown;
-int    g_iYells, g_iYellAttempts, g_iCvarLuck, g_iCvarBurnLuck, g_iSecondaryButton;
+int    g_iYells, g_iYellAttempts, g_iCvarLuck, g_iCvarBurnLuck, g_iSecondaryButton, g_iOldButtons[MAXPLAYERS + 1];
 char   g_sCvarKey[12];
 ConVar g_cvarYellEnabled, g_cvarYellPounced, g_cvarYellChoked, g_cvarYellRiden, g_cvarYellIncap, g_cvarYellPummel, g_cvarYellPower, g_cvarYellRadius, g_cvarYellInterval, g_cvarYellLuck;
 ConVar g_cvarYellExclude, g_cvarYellDefault, g_cvarYellBind, g_cvarYellBindKey, g_cvarYellAdvert, g_cvarYellSurvivor, g_cvarYellInfected, g_cvarYellCooldown, g_cvarYellBurn, g_cvarYellBurnLuck;
@@ -320,7 +320,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
     if (!g_bHooked || !IsValidClient(client))
         return Plugin_Continue;
 
-    int pressed = buttons & ~g_bOldButtons[client];
+    int pressed = buttons & ~g_iOldButtons[client];
 
     if (g_bCvarDefault && (pressed & IN_SPEED))
         TryYell(client);
@@ -328,7 +328,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
     if (g_bCvarBind && g_iSecondaryButton && (pressed & g_iSecondaryButton))
         TryYell(client);
 
-    g_bOldButtons[client] = buttons;
+    g_iOldButtons[client] = buttons;
     return Plugin_Continue;
 }
 
@@ -592,7 +592,7 @@ stock void ResetStats(int client)
             g_bIncap[i]   = false;
             g_bCdown[i]   = false;
             g_bYCdown[i]  = false;
-            g_bOldButtons[i] = 0;
+            g_iOldButtons[i] = 0;
         }
     }
     else
@@ -604,7 +604,7 @@ stock void ResetStats(int client)
         g_bIncap[client]   = false;
         g_bCdown[client]   = false;
         g_bYCdown[client]  = false;
-        g_bOldButtons[client] = 0;
+        g_iOldButtons[client] = 0;
     }
 }
 
