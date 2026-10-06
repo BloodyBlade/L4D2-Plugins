@@ -52,7 +52,7 @@ ConVar g_cvarYellExclude, g_cvarYellDefault, g_cvarYellBind, g_cvarYellBindKey, 
 
 public Plugin myinfo =
 {
-    name        = "[L4D2] Last Resource",
+    name        = "[L4D2] Last Resource (fork)",
     author      = "honorcode23 (Updated, fixed and optimized by BloodyBlade)",
     description = "Allow survivors and infected to 'yell' as their last resource",
     version     = PLUGIN_VERSION,
@@ -71,7 +71,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public void OnPluginStart()
 {
-	CreateConVar("l4d2_last_resource_version", PLUGIN_VERSION, "Version of [L4D2] Last Resource Plugin", CVAR_FLAGS | FCVAR_SPONLY | FCVAR_DONTRECORD);
+	CreateConVar("l4d2_last_resource_fork_version", PLUGIN_VERSION, "[L4D2] Last Resource (fork) plugin version", CVAR_FLAGS | FCVAR_SPONLY | FCVAR_DONTRECORD);
 
 	g_cvarYellEnabled   = CreateConVar("l4d2_last_resource_enabled",        "1",      "Enable/disable the plugin",         CVAR_FLAGS, true, 0.0, true, 1.0);
 	g_cvarYellAdvert   = CreateConVar("l4d2_last_resource_advert",          "1",      "Tell the players about the feature", CVAR_FLAGS, true, 0.0, true, 1.0);
