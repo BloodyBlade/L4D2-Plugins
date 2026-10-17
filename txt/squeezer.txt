@@ -1,0 +1,24 @@
+// perkmod/squeezer.inc — язык наносит больше урона (smoker №2)
+#if defined _perkmod_squeezer_included
+ #endinput
+#endif
+#define _perkmod_squeezer_included
+
+int g_iPerkSQ;
+
+void Squeezer_Register()
+{
+	g_iPerkSQ = Perks_Register("squeezer", TREE_SMOKER);
+	Dmg_Subscribe(SQ_Dmg);
+}
+
+void SQ_Dmg(int victim, int attacker, float &dmg, int &dmgtype, int weapon)
+{
+	if (dmg <= 0.0) return;
+	if (!Perk_HasInfected(attacker, g_iPerkSQ)) return;
+	if (GetZombieClass(attacker) != 1) return;
+	float mult = PerkCvar_Float(g_iPerkSQ, "_dmg", 1.5);
+	if (mult < 1.0) mult = 1.0;
+	if (mult > 4.0) mult = 4.0;
+	dmg *= mult;
+}

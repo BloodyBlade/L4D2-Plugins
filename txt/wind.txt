@@ -1,0 +1,40 @@
+// perkmod/wind.inc — удар танка отбрасывает дальше (tank №5)
+#if defined _perkmod_wind_included
+ #endinput
+#endif
+#define _perkmod_wind_included
+
+int g_iPerkW;
+
+void Wind_Register()
+{
+	g_iPerkW = Perks_Register("wind", TREE_TANK);
+	Dmg_Subscribe(W_Dmg);
+}
+
+void W_Dmg(int victim, int attacker, float &dmg, int &dmgtype, int weapon)
+{
+	if (dmg <= 0.0) return;
+	if (!Perk_HasInfected(attacker, g_iPerkW)) return;
+	if (GetZombieClass(attacker) != 8) return;
+	// усиленный отброс: умножаем текущую скорость жертвы (честный путь, как SR_Force)
+	float force = PerkCvar_Float(g_iPerkW, "_force", 1.5);
+	if (force <= 1.0) return;
+	DataPack dp;
+	CreateDataTimer(0.1, W_Boost, dp, TIMER_FLAG_NO_MAPCHANGE);
+	dp.WriteCell(GetClientUserId(victim));
+	dp.WriteFloat(force);
+}
+
+Action W_Boost(Handle timer, DataPack dp)
+{
+	dp.Reset();
+	int v = GetClientOfUserId(dp.ReadCell());
+	float force = dp.ReadFloat();
+	if (!v || !IsValidClient(v)) return Plugin_Stop;
+	float vel[3];
+	GetEntPropVector(v, Prop_Data, "m_vecVelocity", vel);
+	vel[0] *= force; vel[1] *= force; vel[2] *= force;
+	TeleportEntity(v, NULL_VECTOR, NULL_VECTOR, vel);
+	return Plugin_Stop;
+}

@@ -1,0 +1,36 @@
+// perkmod/tongue_twister.inc — язык втягивает быстрее (smoker №1)
+#if defined _perkmod_tongue_twister_included
+ #endinput
+#endif
+#define _perkmod_tongue_twister_included
+
+int g_iPerkTT;
+
+void TongueTwister_Register()
+{
+	g_iPerkTT = Perks_Register("tongue_twister", TREE_SMOKER);
+	CreateTimer(0.1, TT_Tick, 0, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
+}
+
+Action TT_Tick(Handle timer)
+{
+	if (!g_hCvarEnable.BoolValue) return Plugin_Continue;
+	float mult = PerkCvar_Float(g_iPerkTT, "_rate", 1.3);   // кламп сверить
+	for (int c = 1; c <= MaxClients; c++)
+	{
+		if (!IsValidClient(c) || GetClientTeam(c) != 3 || GetZombieClass(c) != 1) continue;
+		if (!Perk_HasInfected(c, g_iPerkTT)) continue;
+		int victim = GetEntPropEnt(c, Prop_Send, "m_tongueVictim");
+		if (victim <= 0) continue;
+		// честная симуляция ускоренного втягивания: подтягиваем жертву к курильщику
+		float posV[3], posS[3], vel[3];
+		GetClientAbsOrigin(c, posS);
+		GetClientAbsOrigin(victim, posV);
+		vel[0] = posS[0] - posV[0];
+		vel[1] = posS[1] - posV[1];
+		vel[2] = posS[2] - posV[2];
+		vel[0] *= mult; vel[1] *= mult; vel[2] *= mult;
+		TeleportEntity(victim, NULL_VECTOR, NULL_VECTOR, vel);
+	}
+	return Plugin_Continue;
+}

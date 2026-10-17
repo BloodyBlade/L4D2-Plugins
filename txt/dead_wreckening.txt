@@ -1,0 +1,31 @@
+// perkmod/dead_wreckening.inc — common бьют облитых сильнее (boomer №3)
+#if defined _perkmod_dead_wreckening_included
+ #endinput
+#endif
+#define _perkmod_dead_wreckening_included
+
+int g_iPerkDW;
+
+void DeadWreckening_Register()
+{
+	g_iPerkDW = Perks_Register("dead_wreckening", TREE_BOOMER);
+	Dmg_Subscribe(DW_Dmg);
+}
+
+void DW_Dmg(int victim, int attacker, float &dmg, int &dmgtype, int weapon)
+{
+	if (dmg <= 0.0) return;
+	if (attacker != 0 || dmgtype != 128) return;       // только common
+	if (g_iSlimed <= 0 || g_iSlimerLast <= 0) return;
+	if (!Perk_HasInfected(g_iSlimerLast, g_iPerkDW)) return;
+
+	float mult = PerkCvar_Float(g_iPerkDW, "_dmg", 0.5);   // кламп 0.01..4.0
+	if (mult < 0.01) mult = 0.01;
+	if (mult > 4.0)  mult = 4.0;
+
+	float add = dmg * mult;
+	int iAdd = RoundToFloor(add);
+	if (GetURandomFloat() < (add - float(iAdd))) iAdd++;   // честное округление оригинала
+	if (iAdd <= 0) return;
+	dmg += float(iAdd);
+}

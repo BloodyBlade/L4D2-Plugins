@@ -1,0 +1,50 @@
+// perkmod/smoke_it.inc — дымовая завеса на смерти курильщика (smoker №4, честный путь)
+#if defined _perkmod_smoke_it_included
+ #endinput
+#endif
+#define _perkmod_smoke_it_included
+
+int g_iPerkSI;
+
+void SmokeIt_Register()
+{
+	g_iPerkSI = Perks_Register("smoke_it", TREE_SMOKER);
+	Events_Subscribe(PME_DEATH, SI_Death);
+}
+
+void SI_Death(int victim, int attacker)
+{
+	if (!Perk_HasInfected(victim, g_iPerkSI)) return;
+	if (!IsValidClient(victim) || GetClientTeam(victim) != 3 || GetZombieClass(victim) != 1) return;
+
+	float pos[3];
+	GetClientAbsOrigin(victim, pos);
+	// честная дымовая завеса: env_smokestack, не чит-команды
+	int smoke = CreateEntityByName("env_smokestack");
+	if (smoke > 0)
+	{
+		DispatchKeyValueVector(smoke, "origin", pos);
+		DispatchKeyValue(smoke, "InitialState", "1");
+		DispatchKeyValue(smoke, "SpreadSpeed", "40");
+		DispatchKeyValue(smoke, "Speed", "30");
+		DispatchKeyValue(smoke, "StartSize", "20");
+		DispatchKeyValue(smoke, "EndSize", "60");
+		DispatchKeyValue(smoke, "Rate", "40");
+		DispatchKeyValue(smoke, "JetLength", "120");
+		DispatchKeyValue(smoke, "rendercolor", "128 128 128");
+		DispatchSpawn(smoke);
+		AcceptEntityInput(smoke, "TurnOn");
+		int life = PerkCvar_Int(g_iPerkSI, "_duration", 10);
+		DataPack dp;
+		CreateDataTimer(float(life), SI_Cleanup, dp, TIMER_FLAG_NO_MAPCHANGE);
+		dp.WriteCell(EntIndexToEntRef(smoke));
+	}
+}
+
+Action SI_Cleanup(Handle timer, DataPack dp)
+{
+	dp.Reset();
+	int smoke = EntRefToEntIndex(dp.ReadCell());
+	if (smoke > 0 && IsValidEntity(smoke)) AcceptEntityInput(smoke, "Kill");
+	return Plugin_Stop;
+}

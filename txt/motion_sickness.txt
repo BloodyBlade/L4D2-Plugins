@@ -1,0 +1,46 @@
+// perkmod/motion_sickness.inc — облитых укачивает: качает экран (boomer №4)
+#if defined _perkmod_motion_sickness_included
+ #endinput
+#endif
+#define _perkmod_motion_sickness_included
+
+int g_iPerkMS;
+
+void MotionSickness_Register()
+{
+	g_iPerkMS = Perks_Register("motion_sickness", TREE_BOOMER);
+	Events_Subscribe(PME_VOMIT, MS_OnIt);
+	CreateTimer(2.0, MS_Tick, 0, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
+}
+
+void MS_OnIt(int victim, int attacker)
+{
+	if (Perk_HasInfected(attacker, g_iPerkMS) && victim > 0 && victim <= MaxClients)
+		Util_SaveBaseSpeed(victim, SPEED_MS);
+}
+
+Action MS_Tick(Handle timer)
+{
+	if (!g_hCvarEnable.BoolValue) return Plugin_Continue;
+	for (int c = 1; c <= MaxClients; c++)
+	{
+		if (!IsValidClient(c) || GetClientTeam(c) != 2 || IsFakeClient(c)) continue;
+		if (!Util_IsSlimed(c) || !Perk_HasInfected(g_iSlimedBy[c], g_iPerkMS))
+		{
+			if (g_iSpeedOwner[c] == SPEED_MS) Util_ClearSpeed(c);
+			continue;
+		}
+		// качание экрана: ScreenShake, честный путь (не правим зрение телепортом)
+		int dur = PerkCvar_Int(g_iPerkMS, "_interval", 4);
+		Handle msg = StartMessageOne("Shake", c);
+		if (msg != null)
+		{
+			BfWriteFloat(msg, 0.15);       // amplitude
+			BfWriteFloat(msg, 1.0);        // frequency
+			BfWriteFloat(msg, float(dur));        // duration
+			EndMessage();
+		}
+		Util_SetSpeed(c, PerkCvar_Float(g_iPerkMS, "_rate", 0.85));
+	}
+	return Plugin_Continue;
+}

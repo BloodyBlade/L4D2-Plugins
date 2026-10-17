@@ -1,0 +1,23 @@
+// perkmod/storm_caller.inc — моб при спавне танка (tank №4, mobcount дефолт 1)
+#if defined _perkmod_storm_caller_included
+ #endinput
+#endif
+#define _perkmod_storm_caller_included
+
+int g_iPerkSC;
+
+void StormCaller_Register()
+{
+	g_iPerkSC = Perks_Register("storm_caller", TREE_TANK);
+	Events_Subscribe(PME_SPAWNTANK, SC_Spawn);
+	Events_Subscribe(PME_SPAWN,     SC_Spawn);
+}
+
+void SC_Spawn(int client, int extra)
+{
+	if (!Perk_HasInfected(client, g_iPerkSC)) return;
+	if (GetZombieClass(client) != 8) return;
+	int count = PerkCvar_Int(g_iPerkSC, "_mobcount", 1);
+	if (count <= 0) return;
+	L4D_ForcePanicEvent();
+}

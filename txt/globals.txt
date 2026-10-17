@@ -1,0 +1,84 @@
+// perkmod/globals.inc — общие данные ядра
+#if defined _perkmod_globals_included
+ #endinput
+#endif
+#define _perkmod_globals_included
+
+#if !defined PLUGIN_VERSION
+	#define PLUGIN_VERSION "2.3.0"
+#endif
+#define PERKMOD_MAXPERKS 48
+
+#define TREE_NONE     0
+#define TREE_SUR1     1
+#define TREE_SUR2     2
+#define TREE_SUR3     3
+#define TREE_BOOMER   4
+#define TREE_SMOKER   5
+#define TREE_SPITTER  6
+#define TREE_HUNTER   7
+#define TREE_JOCKEY   8
+#define TREE_CHARGER  9
+#define TREE_TANK    10
+
+// шина перковых событий
+#define PME_SPAWN           0
+#define PME_DEATH           1
+#define PME_INCAP           2
+#define PME_REVIVE          3
+#define PME_VOMIT           4
+#define PME_APPLY_CONFIRM   5
+#define PME_SPAWNTANK       6
+#define PME_JOCKEY_RIDE     7
+#define PME_JOCKEY_RIDE_END 8
+#define PME_ABILITY         9
+#define PME_POUNCE         10
+#define PME_CHARGE_IMPACT  11
+#define PME_HEAL           12
+#define PME_MAX            13
+
+// рента скорости: кто владеет m_flLaggedMovementValue
+#define SPEED_NONE  0
+#define SPEED_MB    1   // metabolic boost
+#define SPEED_SB    2   // speeding bullet
+#define SPEED_SD    3   // speed demon
+#define SPEED_DD    4   // drag and drop
+#define SPEED_ADH   5   // mega adhesive
+#define SPEED_MS    6   // motion sickness
+#define SPEED_EC    7   // extreme conditioning
+#define SPEED_WIND  8   // wind
+#define SPEED_MAX   9
+
+ConVar g_hCvarEnable;
+ConVar g_hCvarBotSur1, g_hCvarBotSur2, g_hCvarBotSur3, g_hCvarBotInf;
+
+int g_iPerkCount;
+
+char g_sPerkNames[PERKMOD_MAXPERKS][32];
+int  g_iPerkTree[PERKMOD_MAXPERKS];
+
+int  g_iSlot1[MAXPLAYERS+1], g_iSlot2[MAXPLAYERS+1], g_iSlot3[MAXPLAYERS+1];
+int  g_iInfectedPerk[MAXPLAYERS+1];
+bool g_bConfirmed[MAXPLAYERS+1];
+
+// рента скорости
+int   g_iSpeedOwner[MAXPLAYERS+1];
+float g_flSpeedBase[MAXPLAYERS+1];
+
+// облитость бумером (dead_wreckening / barf_bagged / motion_sickness)
+int  g_iSlimed;
+int  g_iSlimerLast;
+bool g_bSlimed[MAXPLAYERS+1];
+int  g_iSlimedBy[MAXPLAYERS+1];
+
+// прочее
+int  g_iUBApplied[MAXPLAYERS+1];      // unbreakable: применённое maxhealth
+float g_flSPReadyAt[MAXPLAYERS+1];    // spirit: время готовности self-revive
+bool g_bDtTankRequested;              // double_trouble: дубль танка в очереди
+int  g_iDtTankClient;        // double_trouble: танк-инициатор (источник позиции)
+
+// шина
+ArrayList g_hBus[PME_MAX];
+ArrayList g_hMapStart;
+ArrayList g_hDmg;
+ArrayList g_hFireRate;

@@ -1,0 +1,47 @@
+// perkmod/speeding_bullet.inc — ускоренный заряд чарджера (charger №2, дефолт 1.5)
+#if defined _perkmod_speeding_bullet_included
+ #endinput
+#endif
+#define _perkmod_speeding_bullet_included
+
+int g_iPerkSB;
+
+void SpeedingBullet_Register()
+{
+	g_iPerkSB = Perks_Register("speeding_bullet", TREE_CHARGER);
+	Events_Subscribe(PME_ABILITY, SB_Ability);
+	Events_Subscribe(PME_SPAWN,   SB_Reset);
+	Events_Subscribe(PME_DEATH,   SB_Reset);
+	HookEvent("charger_charge_end", SB_ChargeEnd, EventHookMode_Post);
+	HookEvent("charger_carry_end",  SB_ChargeEnd, EventHookMode_Post);
+}
+
+void SB_Reset(int client, int extra)
+{
+	if (!IsValidClient(client) || GetClientTeam(client) != 3) return;
+	if (GetZombieClass(client) != 6) return;
+	if (g_iSpeedOwner[client] == SPEED_SB) Util_ClearSpeed(client);
+}
+
+void SB_Ability(int client, int extra)
+{
+	if (!Perk_HasInfected(client, g_iPerkSB)) return;
+	if (GetZombieClass(client) != 6) return;
+	// живая сверка: имя способности "ability_charge"
+	if (Util_AbilityNameMatches(client, "ability_charge"))
+	{
+		float rate = PerkCvar_Float(g_iPerkSB, "_rate", 1.5);   // кламп 1.0..10.0
+		if (rate < 1.0)  rate = 1.0;
+		if (rate > 10.0) rate = 10.0;
+		Util_SaveBaseSpeed(client, SPEED_SB);
+		Util_SetSpeed(client, rate);
+	}
+}
+
+void SB_ChargeEnd(Event e, const char[] n, bool db)
+{
+	int c = GetClientOfUserId(e.GetInt("userid"));
+	if (!IsValidClient(c) || GetClientTeam(c) != 3 || GetZombieClass(c) != 6) return;
+	if (!Perk_HasInfected(c, g_iPerkSB)) return;
+	if (g_iSpeedOwner[c] == SPEED_SB) Util_ClearSpeed(c);
+}

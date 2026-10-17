@@ -1,0 +1,51 @@
+// perkmod/pyrotechnician.inc — гранаты по таймеру (sur1 №4, _maxticks 120, 0 = выкл)
+#if defined _perkmod_pyrotechnician_included
+ #endinput
+#endif
+#define _perkmod_pyrotechnician_included
+
+int g_iPerkPyro;
+int g_iPyroTicks[MAXPLAYERS+1];
+
+void Pyrotechnician_Register()
+{
+	g_iPerkPyro = Perks_Register("pyrotechnician", TREE_SUR1);
+	Events_Subscribe(PME_APPLY_CONFIRM, Pyro_Confirm);
+	Events_Subscribe(PME_SPAWN, Pyro_Spawn);
+	Events_MapStart_Add(Pyro_Reset);
+	CreateTimer(1.0, Pyro_Tick, 0, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
+}
+
+void Pyro_Reset()
+{
+	for (int i = 0; i <= MaxClients; i++) g_iPyroTicks[i] = 0;
+}
+
+void Pyro_Confirm(int client, int extra)
+{
+	if (!Perk_HasSurvivor(client, g_iPerkPyro)) return;
+	if (!IsValidClient(client) || GetClientTeam(client) != 2) return;
+	if (GetPlayerWeaponSlot(client, 2) > 0) return;
+	GiveItem(client, "weapon_pipe_bomb", true);
+}
+
+void Pyro_Spawn(int client, int extra) { g_iPyroTicks[client] = 0; }
+
+Action Pyro_Tick(Handle timer)
+{
+	if (!g_hCvarEnable.BoolValue) return Plugin_Continue;
+	int interval = PerkCvar_Int(g_iPerkPyro, "_maxticks", 120);
+	if (interval <= 0) return Plugin_Continue;
+	for (int c = 1; c <= MaxClients; c++)
+	{
+		if (!IsValidClient(c) || !IsPlayerAlive(c) || GetClientTeam(c) != 2) continue;
+		if (!Perk_HasSurvivor(c, g_iPerkPyro)) continue;
+		if (GetPlayerWeaponSlot(c, 2) > 0) { g_iPyroTicks[c] = 0; continue; }
+		if (++g_iPyroTicks[c] >= interval)
+		{
+			g_iPyroTicks[c] = 0;
+			GiveItem(c, "weapon_pipe_bomb", true);
+		}
+	}
+	return Plugin_Continue;
+}

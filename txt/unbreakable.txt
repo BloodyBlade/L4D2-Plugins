@@ -1,0 +1,63 @@
+// perkmod/unbreakable.inc — бонусное HP + буфер на ревайве/спасении (sur2 №1, дефолт 20)
+#if defined _perkmod_unbreakable_included
+ #endinput
+#endif
+#define _perkmod_unbreakable_included
+
+int g_iPerkUB;
+
+void Unbreakable_Register()
+{
+	g_iPerkUB = Perks_Register("unbreakable", TREE_SUR2);
+	Events_Subscribe(PME_APPLY_CONFIRM, UB_Apply);
+	Events_Subscribe(PME_SPAWN,         UB_Clear);
+	Events_Subscribe(PME_REVIVE,        UB_Revive);
+	Events_MapStart_Add(UB_ClearAll);
+	HookEvent("survivor_rescued", UB_Rescued, EventHookMode_Post);   // поле subject — живая сверка
+}
+
+void UB_ClearAll() { for (int i = 0; i <= MaxClients; i++) g_iUBApplied[i] = 0; }
+void UB_Clear(int client, int extra) { g_iUBApplied[client] = 0; }
+
+void UB_Apply(int client, int extra)
+{
+	if (!Perk_HasSurvivor(client, g_iPerkUB)) return;
+	if (!IsValidClient(client) || GetClientTeam(client) != 2 || !IsPlayerAlive(client)) return;
+
+	int maxhp = GetEntProp(client, Prop_Data, "m_iMaxHealth");   // база из пропа, не хардкод 100
+	if (g_iUBApplied[client] == maxhp) return;   // гвард по значению
+
+	int bonus = PerkCvar_Int(g_iPerkUB, "_hp", 20);
+	if (bonus <= 0) return;
+	SetEntProp(client, Prop_Data, "m_iMaxHealth", maxhp + bonus);
+	SetEntityHealth(client, GetClientHealth(client) + bonus);
+	g_iUBApplied[client] = maxhp + bonus;
+}
+
+// оригинал 2.0.9: на ревайве — половина бонуса в temp HP; не на ledge
+void UB_Revive(int victim, int reviver)
+{
+	if (!Perk_HasSurvivor(victim, g_iPerkUB)) return;
+	if (!IsValidClient(victim) || GetClientTeam(victim) != 2) return;
+	if (Util_IsOnLedge(victim)) return;
+	Util_GiveTempBuffer(victim, PerkCvar_Int(g_iPerkUB, "_hp", 20) / 2);
+}
+
+// на спасении из рескью-клоузета — 50% бонуса, отложено на 0.5 сек
+void UB_Rescued(Event e, const char[] n, bool db)
+{
+	int c = GetClientOfUserId(e.GetInt("subject"));
+	if (!c || !Perk_HasSurvivor(c, g_iPerkUB)) return;
+	DataPack dp;
+	CreateDataTimer(0.5, UB_RescuedGive, dp, TIMER_FLAG_NO_MAPCHANGE);
+	dp.WriteCell(GetClientUserId(c));
+}
+
+Action UB_RescuedGive(Handle timer, DataPack dp)
+{
+	dp.Reset();
+	int c = GetClientOfUserId(dp.ReadCell());
+	if (c > 0 && IsValidClient(c) && Perk_HasSurvivor(c, g_iPerkUB))
+		Util_GiveTempBuffer(c, PerkCvar_Int(g_iPerkUB, "_hp", 20) / 2);
+	return Plugin_Stop;
+}

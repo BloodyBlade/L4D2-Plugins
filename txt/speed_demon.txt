@@ -1,0 +1,32 @@
+// perkmod/speed_demon.inc — джокей быстрее (jockey №1)
+#if defined _perkmod_speed_demon_included
+ #endinput
+#endif
+#define _perkmod_speed_demon_included
+
+int g_iPerkSD;
+
+void SpeedDemon_Register()
+{
+	g_iPerkSD = Perks_Register("speed_demon", TREE_JOCKEY);
+	Events_Subscribe(PME_JOCKEY_RIDE, SD_Ride);
+	Events_Subscribe(PME_JOCKEY_RIDE_END, SD_RideEnd);
+	Events_Subscribe(PME_DEATH, SD_Death);
+}
+
+void SD_Ride(int jockey, int victim)
+{
+	if (!Perk_HasInfected(jockey, g_iPerkSD)) return;
+	Util_SaveBaseSpeed(jockey, SPEED_SD);
+	Util_SetSpeed(jockey, PerkCvar_Float(g_iPerkSD, "_rate", 1.15));
+}
+
+void SD_RideEnd(int jockey, int victim)
+{
+	if (g_iSpeedOwner[jockey] == SPEED_SD) Util_RestoreOwnerSpeed(jockey);
+}
+
+void SD_Death(int victim, int attacker)
+{
+	if (g_iSpeedOwner[victim] == SPEED_SD) Util_RestoreOwnerSpeed(victim);
+}

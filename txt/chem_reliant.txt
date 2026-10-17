@@ -1,0 +1,41 @@
+// perkmod/chem_reliant.inc — стартовые таблетки/адреналин (sur3 №2, буфер дефолт 0 в 2.2.0)
+#if defined _perkmod_chem_reliant_included
+ #endinput
+#endif
+#define _perkmod_chem_reliant_included
+
+int g_iPerkCR;
+
+void ChemReliant_Register()
+{
+	g_iPerkCR = Perks_Register("chem_reliant", TREE_SUR3);
+	Events_Subscribe(PME_APPLY_CONFIRM, CR_Confirm);
+	HookEvent("survivor_rescued", CR_Rescued, EventHookMode_Post);
+	HookEvent("pills_used",      CR_Used, EventHookMode_Post);
+	HookEvent("adrenaline_used", CR_Used, EventHookMode_Post);
+}
+
+void CR_Confirm(int client, int extra)
+{
+	if (!Perk_HasSurvivor(client, g_iPerkCR)) return;
+	if (!IsValidClient(client) || GetClientTeam(client) != 2 || !IsPlayerAlive(client)) return;
+	GiveItem(client, (GetURandomInt() % 2 == 0) ? "weapon_pain_pills" : "weapon_adrenaline", true);
+}
+
+void CR_Rescued(Event e, const char[] n, bool db)
+{
+	int c = GetClientOfUserId(e.GetInt("subject"));
+	if (c > 0 && Perk_HasSurvivor(c, g_iPerkCR) && IsValidClient(c) && GetClientTeam(c) == 2)
+		GiveItem(c, (GetURandomInt() % 2 == 0) ? "weapon_pain_pills" : "weapon_adrenaline", true);
+}
+
+// temp-буфер при использовании таблеток/адреналина: дефолт 0 (кламп 0..100)
+void CR_Used(Event e, const char[] n, bool db)
+{
+	int c = GetClientOfUserId(e.GetInt("userid"));
+	if (!c || !Perk_HasSurvivor(c, g_iPerkCR)) return;
+	int buff = PerkCvar_Int(g_iPerkCR, "_buff", 0);
+	if (buff <= 0) return;
+	if (buff > 100) buff = 100;
+	Util_GiveTempBuffer(c, buff);
+}

@@ -1,0 +1,27 @@
+// perkmod/little_leaguer.inc — урон милишки повышен (sur3 №5)
+#if defined _perkmod_little_leaguer_included
+ #endinput
+#endif
+#define _perkmod_little_leaguer_included
+
+int g_iPerkLL;
+
+void LittleLeaguer_Register()
+{
+	g_iPerkLL = Perks_Register("little_leaguer", TREE_SUR3);
+	Dmg_Subscribe(LL_Dmg);
+}
+
+void LL_Dmg(int victim, int attacker, float &dmg, int &dmgtype, int weapon)
+{
+	if (dmg <= 0.0) return;
+	if (!Perk_HasSurvivor(attacker, g_iPerkLL)) return;
+	if (weapon <= 0) return;
+	char cls[40];
+	GetEntityClassname(weapon, cls, sizeof(cls));
+	if (StrContains(cls, "melee") == -1) return;
+	float mult = PerkCvar_Float(g_iPerkLL, "_dmg", 1.3);
+	if (mult < 1.0) mult = 1.0;
+	if (mult > 4.0) mult = 4.0;
+	dmg *= mult;
+}

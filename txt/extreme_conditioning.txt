@@ -1,0 +1,27 @@
+// perkmod/extreme_conditioning.inc — стамина не падает (sur3 №4)
+#if defined _perkmod_extreme_conditioning_included
+ #endinput
+#endif
+#define _perkmod_extreme_conditioning_included
+
+int g_iPerkEC;
+
+void ExtremeConditioning_Register()
+{
+	g_iPerkEC = Perks_Register("extreme_conditioning", TREE_SUR3);
+	CreateTimer(1.0, EC_Tick, 0, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
+}
+
+Action EC_Tick(Handle timer)
+{
+	if (!g_hCvarEnable.BoolValue) return Plugin_Continue;
+	for (int c = 1; c <= MaxClients; c++)
+	{
+		if (!IsValidClient(c) || GetClientTeam(c) != 2 || !IsPlayerAlive(c)) continue;
+		if (!Perk_HasSurvivor(c, g_iPerkEC)) continue;
+		// живой сверочный пункт: m_flStamina как sendprop выжившего
+		float st = GetEntPropFloat(c, Prop_Send, "m_flStamina");
+		if (st < 100.0) SetEntPropFloat(c, Prop_Send, "m_flStamina", 100.0);
+	}
+	return Plugin_Continue;
+}

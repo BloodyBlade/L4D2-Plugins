@@ -1,0 +1,104 @@
+// perkmod/spirit.inc — Самовосстановление (sur2)
+//
+// Машинерия само-ревайва адаптирована из [VIP] SelfRevive by BloodyBlade:
+// бар — только визуал, реальный подъём выполняет код по собственному таймеру
+// (паттерн EndBar): сброс бара/owner, L4D_ReviveSurvivor, контроль счётчика ч/б.
+// Отличие от SelfRevive: триггер не удержание IN_DUCK, а самостоятельный старт
+// по условиям (инкап/ledge + кулдаун перка).
+#if defined _perkmod_spirit_included
+ #endinput
+#endif
+#define _perkmod_spirit_included
+
+#define SP_SOUND_SELFHELP "player/items/pain_pills/pills_use_1.wav"
+
+float g_flSpNextUse[MAXPLAYERS + 1];   // момент, когда само-ревайв снова доступен
+
+void Sp_Init()
+{
+	HookEvent("player_incapacitated", Sp_EvIncap);
+	HookEvent("player_ledge_grab", Sp_EvIncap);
+	Events_MapStart_Add(Sp_OnMapStart);
+}
+
+void Sp_OnMapStart()
+{
+	PrecacheSound(SP_SOUND_SELFHELP, true);
+	Sp_ResetAll();
+}
+
+void Sp_ResetAll()
+{
+	for (int i = 1; i <= MaxClients; i++)
+		g_flSpNextUse[i] = 0.0;
+}
+
+// сброс состояния: вызывать из ядра на player_spawn / player_death / round end
+void Sp_ResetClient(int client)
+{
+	g_flSpNextUse[client] = 0.0;
+}
+
+static bool Sp_IsSurvivor(int client)
+{
+	return IsValidClient(client) && GetClientTeam(client) == 2 && IsPlayerAlive(client);
+}
+
+// старт само-ревайва: по инкапу или ledge, если кулдаун отжат и никто не ревайвит
+void Sp_EvIncap(Event event, const char[] name, bool dontBroadcast)
+{
+	int client = GetClientOfUserId(event.GetInt("userid"));
+	if (!Sp_IsSurvivor(client)) return;
+	if (!Perk_HasSurvivor(client, g_iIdSpirit)) return;
+	if (GetGameTime() < g_flSpNextUse[client]) return;
+	if (!Util_IsIncapacitated(client) && !Util_IsOnLedge(client)) return;
+	if (Util_GetReviveOwner(client) > 0) return;   // уже поднимают — не перебиваем
+
+	float dur = PerkCvar_Float(g_iIdSpirit, "_time", 2.0);
+	float cd  = Util_GameModeIsVersusOrScavenge()
+		? PerkCvar_Float(g_iIdSpirit, "_cooldown_vs", 150.0)
+		: PerkCvar_Float(g_iIdSpirit, "_cooldown", 240.0);
+
+	g_flSpNextUse[client] = GetGameTime() + cd;
+	Util_BarSet(client, dur);
+	Util_SetReviveOwner(client, client);           // как в SelfRevive: owner = сам игрок
+
+	DataPack dp;
+	CreateDataTimer(dur, Sp_EndBar, dp);
+	dp.WriteCell(client);
+}
+
+// EndBar — по мотивам [VIP] SelfRevive by BloodyBlade
+Action Sp_EndBar(Handle timer, DataPack dp)
+{
+	dp.Reset();
+	int client = dp.ReadCell();
+
+	if (!Sp_IsSurvivor(client)) return Plugin_Stop;
+
+	// перебит чужим ревайвом — чистый сброс и выход (паттерн SelfRevive)
+	if (Util_GetReviveOwner(client) != client)
+		return Plugin_Stop;
+
+	// состояние уже изменилось (подняли/убили/раунд кончился) — сброс и выход
+	if (!Util_IsIncapacitated(client) && !Util_IsOnLedge(client))
+	{
+		Util_SetReviveOwner(client, -1);
+		return Plugin_Stop;
+	}
+
+	// завершаем: гасим бар, снимаем owner, поднимаем нативой
+	Util_BarReset(client);
+	Util_SetReviveOwner(client, -1);
+	L4D_ReviveSurvivor(client);
+
+	// счётчик ч/б: self-revive считается как ревайв (2.0.9-семантика SetIncapsControl)
+	Util_IncrementReviveCount(client);
+
+	// временный буфер перка
+	int buff = PerkCvar_Int(g_iIdSpirit, "_buff", 30);
+	Util_GiveTempBuffer(client, buff);
+	EmitSoundToClient(client, SP_SOUND_SELFHELP);
+
+	return Plugin_Stop;
+}

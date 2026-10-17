@@ -1,0 +1,79 @@
+// perkmod/pack_rat.inc — бонусный резерв боезапаса (sur3 №1, дефолт 0.2, семантика 2.1.5)
+#if defined _perkmod_pack_rat_included
+ #endinput
+#endif
+#define _perkmod_pack_rat_included
+
+int g_iPerkPR;
+bool g_bPRLock[MAXPLAYERS+1];
+
+void PackRat_Register()
+{
+	g_iPerkPR = Perks_Register("pack_rat", TREE_SUR3);
+	HookEvent("item_pickup",  PR_Pickup, EventHookMode_Post);
+	HookEvent("ammo_pickup",  PR_Pickup, EventHookMode_Post);
+	Events_MapStart_Add(PR_Reset);
+}
+
+void PR_Reset()
+{
+	for (int i = 0; i <= MaxClients; i++) g_bPRLock[i] = false;
+}
+
+void PR_Pickup(Event e, const char[] n, bool db)
+{
+	int c = GetClientOfUserId(e.GetInt("userid"));
+	if (!c || !Perk_HasSurvivor(c, g_iPerkPR) || !IsValidClient(c)) return;
+
+	if (n[0] == 'a') { PR_Queue(c); return; }   // ammo_pickup
+	char wpn[24];
+	e.GetString("item", wpn, sizeof(wpn));
+	if (StrContains(wpn, "smg")     != -1 ||
+	    StrContains(wpn, "rifle")   != -1 ||
+	    StrContains(wpn, "shotgun") != -1 ||
+	    StrContains(wpn, "sniper")  != -1)
+		PR_Queue(c);
+}
+
+void PR_Queue(int c)
+{
+	if (g_bPRLock[c]) return;
+	g_bPRLock[c] = true;
+	DataPack dp;
+	CreateDataTimer(0.1, PR_Apply, dp, TIMER_FLAG_NO_MAPCHANGE);
+	dp.WriteCell(GetClientUserId(c));
+}
+
+Action PR_Apply(Handle timer, DataPack dp)
+{
+	dp.Reset();
+	int c = GetClientOfUserId(dp.ReadCell());
+	g_bPRLock[(c > 0) ? c : 0] = false;
+	if (!c || !Perk_HasSurvivor(c, g_iPerkPR) || !IsValidClient(c)) return Plugin_Stop;
+
+	float mult = PerkCvar_Float(g_iPerkPR, "_ammomult", 0.2);   // кламп 0.01..1.0
+	if (mult < 0.01) mult = 0.01;
+	if (mult > 1.0)  mult = 1.0;
+
+	// формулы оригинала: max + packrat*max - текущий в клипе; только вверх
+	for (int s = 0; s <= 1; s++)
+	{
+		int wep = GetPlayerWeaponSlot(c, s);
+		if (wep <= 0) continue;
+		char cls[40];
+		GetEntityClassname(wep, cls, sizeof(cls));
+		if (StrContains(cls, "smg")     == -1 &&
+		    StrContains(cls, "rifle")   == -1 &&
+		    StrContains(cls, "shotgun") == -1 &&
+		    StrContains(cls, "sniper")  == -1) continue;
+
+		int maxammo = Util_GetMaxAmmo(cls);
+		if (maxammo <= 0) continue;
+		int reserve = L4D_GetReserveAmmo(c, wep);
+		int clip    = GetEntProp(wep, Prop_Send, "m_iClip1");
+		int target  = maxammo + RoundToNearest(float(maxammo) * mult) - clip;
+		if (target < 0) target = 0;
+		if (reserve < target) L4D_SetReserveAmmo(c, wep, target);
+	}
+	return Plugin_Stop;
+}

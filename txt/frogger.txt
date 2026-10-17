@@ -1,0 +1,36 @@
+// perkmod/frogger.inc — дальность прыжка + урон джокея (jockey №3, дефолты 1.3 / 0.35)
+#if defined _perkmod_frogger_included
+ #endinput
+#endif
+#define _perkmod_frogger_included
+
+int g_iPerkFG;
+
+void Frogger_Register()
+{
+	g_iPerkFG = Perks_Register("frogger", TREE_JOCKEY);
+	Events_Subscribe(PME_JOCKEY_RIDE, FG_OnRide);
+	Dmg_Subscribe(FG_Damage);
+}
+
+void FG_OnRide(int jockey, int victim)
+{
+	if (!Perk_HasInfected(jockey, g_iPerkFG)) return;
+	float mult = PerkCvar_Float(g_iPerkFG, "_leap", 1.3);   // кламп 1.0..2.0
+	if (mult < 1.0) mult = 1.0;
+	if (mult > 2.0) mult = 2.0;
+	// живой сверочный пункт: m_flLeapDistance как sendprop у джокея
+	SetEntPropFloat(jockey, Prop_Send, "m_flLeapDistance",
+		GetEntPropFloat(jockey, Prop_Send, "m_flLeapDistance") * mult);
+}
+
+void FG_Damage(int victim, int attacker, float &dmg, int &dmgtype, int weapon)
+{
+	if (dmg <= 0.0) return;
+	if (!Perk_HasInfected(attacker, g_iPerkFG)) return;
+	if (GetZombieClass(attacker) != 5) return;
+	float mult = PerkCvar_Float(g_iPerkFG, "_dmg", 0.35);   // кламп 0.0..1.0
+	if (mult < 0.0) mult = 0.0;
+	if (mult > 1.0) mult = 1.0;
+	dmg += dmg * mult;
+}

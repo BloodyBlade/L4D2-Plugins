@@ -1,0 +1,22 @@
+// perkmod/barf_bagged.inc — облитость длится дольше (boomer №1)
+#if defined _perkmod_barf_bagged_included
+ #endinput
+#endif
+#define _perkmod_barf_bagged_included
+
+int g_iPerkBB;
+
+void BarfBagged_Register()
+{
+	g_iPerkBB = Perks_Register("barf_bagged", TREE_BOOMER);
+	Events_Subscribe(PME_VOMIT, BB_OnIt);
+}
+
+void BB_OnIt(int victim, int attacker)
+{
+	if (!Perk_HasInfected(attacker, g_iPerkBB)) return;
+	int dur = PerkCvar_Int(g_iPerkBB, "_duration", 30);   // сек, кламп оригинала сверить
+	// продлеваем таймер облитости жертве (путь оригинала — m_itTimer); живая сверка пропа в README
+	if (victim > 0 && victim <= MaxClients)
+		SetEntProp(victim, Prop_Send, "m_itTimer", GetGameTime() + dur);
+}

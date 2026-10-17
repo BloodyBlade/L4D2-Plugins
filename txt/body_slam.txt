@@ -1,0 +1,24 @@
+// perkmod/body_slam.inc — минимальный урон прайма (hunter №2, дефолт 10, кламп 2..100)
+#if defined _perkmod_body_slam_included
+ #endinput
+#endif
+#define _perkmod_body_slam_included
+
+int g_iPerkBS;
+
+void BodySlam_Register()
+{
+	g_iPerkBS = Perks_Register("body_slam", TREE_HUNTER);
+	Dmg_Subscribe(BS_Dmg);
+}
+
+void BS_Dmg(int victim, int attacker, float &dmg, int &dmgtype, int weapon)
+{
+	if (dmg <= 0.0) return;
+	if (!Perk_HasInfected(attacker, g_iPerkBS)) return;
+	if (GetZombieClass(attacker) != 3) return;
+	int minb = PerkCvar_Int(g_iPerkBS, "_minbound", 10);   // кламп 2..100, только вверх
+	if (minb < 2)   minb = 2;
+	if (minb > 100) minb = 100;
+	if (dmg < float(minb)) dmg = float(minb);
+}

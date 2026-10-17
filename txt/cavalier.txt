@@ -1,0 +1,38 @@
+// perkmod/cavalier.inc — увеличенный HP джокея (jockey №4, +60%)
+#if defined _perkmod_cavalier_included
+ #endinput
+#endif
+#define _perkmod_cavalier_included
+
+int g_iPerkCV;
+
+void Cavalier_Register()
+{
+	g_iPerkCV = Perks_Register("cavalier", TREE_JOCKEY);
+	Events_Subscribe(PME_SPAWN, CV_Spawn);
+}
+
+void CV_Spawn(int client, int extra)
+{
+	if (!Perk_HasInfected(client, g_iPerkCV)) return;
+	if (GetZombieClass(client) != 5) return;
+	CreateTimer(0.1, CV_ChangeHP, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE);
+}
+
+Action CV_ChangeHP(Handle timer, int userid)
+{
+	int c = GetClientOfUserId(userid);
+	if (!c || !IsValidClient(c) || GetClientTeam(c) != 3 || GetZombieClass(c) != 5) return Plugin_Stop;
+	if (!Perk_HasInfected(c, g_iPerkCV)) return Plugin_Stop;
+
+	float mult = PerkCvar_Float(g_iPerkCV, "_hp", 0.6);   // кламп 0.1..2.0
+	if (mult < 0.1) mult = 0.1;
+	if (mult > 2.0) mult = 2.0;
+
+	// база из пропа, не хардкод: m_iMaxHealth отражает z_jockey_health и чужие правки
+	int base = GetEntProp(c, Prop_Data, "m_iMaxHealth");
+	int add = RoundToCeil(float(base) * mult);
+	SetEntProp(c, Prop_Data, "m_iMaxHealth", base + add);
+	SetEntityHealth(c, GetClientHealth(c) + add);
+	return Plugin_Stop;
+}

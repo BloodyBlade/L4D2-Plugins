@@ -1,0 +1,54 @@
+// perkmod/martial_artist.inc — серия быстрых свингов + опциональный кламп шов-пенальти (sur2 №4)
+#if defined _perkmod_martial_artist_included
+ #endinput
+#endif
+#define _perkmod_martial_artist_included
+
+int g_iPerkMA;
+int g_iMASwingCount[MAXPLAYERS+1];
+float g_flMALastSwing[MAXPLAYERS+1];
+
+void MartialArtist_Register()
+{
+	g_iPerkMA = Perks_Register("martial_artist", TREE_SUR2);
+	HookEvent("weapon_fire", MA_Fire, EventHookMode_Post);
+	CreateTimer(1.0, MA_Tick, 0, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
+}
+
+// серия быстрых свингов: до 3 подряд без замаха; пауза > 0.6 сек сбрасывает серию
+void MA_Fire(Event e, const char[] n, bool db)
+{
+	int c = GetClientOfUserId(e.GetInt("userid"));
+	if (!Perk_HasSurvivor(c, g_iPerkMA)) return;
+	if (!IsValidClient(c) || GetClientTeam(c) != 2 || !IsPlayerAlive(c)) return;
+	int wep = GetEntPropEnt(c, Prop_Send, "m_hActiveWeapon");
+	if (wep <= 0) return;
+	char cls[40];
+	GetEntityClassname(wep, cls, sizeof(cls));
+	if (StrContains(cls, "melee") == -1) return;
+
+	float now = GetGameTime();
+	if (now - g_flMALastSwing[c] > 0.6) g_iMASwingCount[c] = 0;   // интервал — живая сверка
+	g_flMALastSwing[c] = now;
+	g_iMASwingCount[c]++;
+	if (g_iMASwingCount[c] <= 3)   // серия из 3 (2.1.2+), раньше 2
+	{
+		SetEntPropFloat(wep, Prop_Send, "m_flNextPrimaryAttack", now + 0.1);
+	}
+}
+
+// кламп m_iShovePenalty: только если админ выставил максимум (дефолт 0 = без клампа, 2.2.0)
+Action MA_Tick(Handle timer)
+{
+	if (!g_hCvarEnable.BoolValue) return Plugin_Continue;
+	int maxp = PerkCvar_Int(g_iPerkMA, "_maxpenalty", 0);
+	if (maxp <= 0) return Plugin_Continue;
+	for (int c = 1; c <= MaxClients; c++)
+	{
+		if (!IsValidClient(c) || !IsPlayerAlive(c) || GetClientTeam(c) != 2) continue;
+		if (!Perk_HasSurvivor(c, g_iPerkMA)) continue;
+		int pen = GetEntProp(c, Prop_Send, "m_iShovePenalty");
+		if (pen > maxp) SetEntProp(c, Prop_Send, "m_iShovePenalty", maxp);
+	}
+	return Plugin_Continue;
+}

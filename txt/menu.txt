@@ -1,0 +1,138 @@
+// perkmod/menu.inc — меню выбора перков
+#if defined _perkmod_menu_included
+ #endinput
+#endif
+#define _perkmod_menu_included
+
+// слот, который пользователь сейчас правит в дереве перков (0 = заражённый)
+int g_iMenuSlot[MAXPLAYERS + 1];
+
+void Menu_RegisterCommands()
+{
+	RegConsoleCmd("sm_perk", Cmd_Perk);
+	RegConsoleCmd("sm_perkrandom", Cmd_PerkRandom);
+	RegAdminCmd("sm_perkforce", Cmd_PerkForce, ADMFLAG_ROOT);
+}
+
+Action Cmd_Perk(int client, int args)
+{
+	if (client > 0) Menu_ShowMain(client);
+	return Plugin_Handled;
+}
+
+Action Cmd_PerkRandom(int client, int args)
+{
+	if (client <= 0) return Plugin_Handled;
+	Menu_RandomApply(client);
+	return Plugin_Handled;
+}
+
+Action Cmd_PerkForce(int client, int args)
+{
+	// форс-рандом: перемешать перки всем, немедленно применить
+	for (int i = 1; i <= MaxClients; i++)
+		if (IsValidClient(i) && GetClientTeam(i) >= 2) Menu_RandomApply(i);
+	return Plugin_Handled;
+}
+
+void Menu_ShowMain(int client)
+{
+	Menu m = new Menu(Menu_MainHandler);
+	m.SetTitle("PerkMod — выбор");
+	m.AddItem("s1", "Слот 1 (выживший)");
+	m.AddItem("s2", "Слот 2 (выживший)");
+	m.AddItem("s3", "Слот 3 (выживший)");
+	m.AddItem("inf", "Перк заражённого");
+	m.AddItem("rand", "Рандом (и применить)");
+	m.Display(client, MENU_TIME_FOREVER);
+}
+
+int Menu_MainHandler(Menu m, MenuAction a, int client, int item)
+{
+	switch (a)
+	{
+		case MenuAction_Select:
+		{
+			char info[8];
+			m.GetItem(item, info, sizeof(info));
+			if (info[0] == 'i')
+				g_iMenuSlot[client] = 0;          // заражённый — слот 4
+			else
+				g_iMenuSlot[client] = StringToInt(info) + 1;
+			Menu_ShowTree(client);
+		}
+		case MenuAction_End: delete m;
+	}
+	return 0;
+}
+
+void Menu_ShowTree(int client)
+{
+	int slot = g_iMenuSlot[client];
+	Menu m = new Menu(Menu_TreeHandler);
+	char title[48];
+	if (slot == 0) Format(title, sizeof(title), "PerkMod — перк заражённого");
+	else           Format(title, sizeof(title), "PerkMod — слот %d", slot);
+	m.SetTitle(title);
+
+	char info[16], name[40];
+	for (int i = 1; i < g_iPerkCount; i++)     // 0 — «нет перка», в дереве не показываем
+	{
+		Format(info, sizeof(info), "%d", i);
+		PerkName(i, name, sizeof(name));
+		m.AddItem(info, name);
+	}
+	m.Display(client, MENU_TIME_FOREVER);
+}
+
+int Menu_TreeHandler(Menu m, MenuAction a, int client, int item)
+{
+	switch (a)
+	{
+		case MenuAction_Select:
+		{
+			char info[16];
+			m.GetItem(item, info, sizeof(info));
+			int id = StringToInt(info);
+			Perk_SetSlot(client, g_iMenuSlot[client], id);
+			Core_ApplyConfirmed(client);
+			Menu_ShowSummary(client);
+		}
+		case MenuAction_End: delete m;
+	}
+	return 0;
+}
+
+void Menu_RandomApply(int client)
+{
+	if (GetClientTeam(client) == 2)
+	{
+		Perk_SetSlot(client, 1, GetURandomInt() % g_iPerkCount);
+		Perk_SetSlot(client, 2, GetURandomInt() % g_iPerkCount);
+		Perk_SetSlot(client, 3, GetURandomInt() % g_iPerkCount);
+	}
+	else if (GetClientTeam(client) == 3)
+	{
+		Perk_SetSlot(client, 4, GetURandomInt() % g_iPerkCount);
+	}
+	Core_ApplyConfirmed(client);
+}
+
+void Menu_ShowSummary(int client)
+{
+	char n1[40], n2[40], n3[40], n4[40];
+	PerkName(g_iSlot1[client], n1, sizeof(n1));
+	PerkName(g_iSlot2[client], n2, sizeof(n2));
+	PerkName(g_iSlot3[client], n3, sizeof(n3));
+	PerkName(g_iInfectedPerk[client], n4, sizeof(n4));
+	PrintToChat(client, "[PerkMod] Перки: %s, %s, %s | Заражённый: %s", n1, n2, n3, n4);
+}
+
+// SourcePawn не возвращает строки — буферная сигнатура
+void PerkName(int id, char[] out, int len)
+{
+	if (id > 0 && id < PERKMOD_MAXPERKS)
+		strcopy(out, len, g_sPerkNames[id]);
+	else
+		strcopy(out, len, "-");
+}
